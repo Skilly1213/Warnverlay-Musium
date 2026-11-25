@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warnverlay Full Release</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --christmas-green: #00ff44;
+            --christmas-red: #ff0000;
+            --christmas-white: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            background: #ff0000;
+            font-family: 'Bebas Neue', sans-serif;
+            font-weight: bold;
+            overflow-x: hidden;
+            position: relative;
+            color: white;
+            text-align: center;
+        }
+        .content {
+            text-align: center;
+            color: white;
+            z-index: 1;
+            padding: 2rem;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+        }
+
+        @keyframes reflectionMove {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes borderGlow {
+            0% { border-color: var(--christmas-red); box-shadow: 0 0 15px rgba(179,0,0,0.15); }
+            33% { border-color: var(--christmas-green); box-shadow: 0 0 20px rgba(11,102,35,0.12); }
+            66% { border-color: var(--christmas-red); box-shadow: 0 0 25px rgba(179,0,0,0.14); }
+            100% { border-color: var(--christmas-green); box-shadow: 0 0 18px rgba(11,102,35,0.12); }
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2.6rem, 6vw, 5rem);
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            background: linear-gradient(to right, #7fdca0 20%, #ffffff 50%, #ff9a9a 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 5s linear infinite;
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.35));
+            position: relative;
+        }
+
+        p {
+            font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+            margin: 1rem 0 2rem;
+            background: linear-gradient(to right, rgb(210, 255, 210) 20%, white 50%, rgb(255, 210, 210) 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 5s linear infinite;
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.35));
+            position: relative;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .resolution-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            position: relative;
+        }
+
+        .resolution {
+            display: block;
+            width: min(420px, 82vw);
+            padding: 18px 24px;
+            font-family: inherit;
+            font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #ffffff;
+            background: linear-gradient(135deg, #00ff44 0%, #ff0000 100%);
+            border: none;
+            border-radius: 14px;
+            text-decoration: none;
+            box-sizing: border-box;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+            transition: transform 0.15s ease;
+            border: 2px solid #000000;
+        }
+
+        .resolution:hover {
+            transform: scale(1.04);
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: particleFall 15s infinite linear;
+        }
+
+        @keyframes particleFall {
+            0% { transform: translateY(-10vh); opacity: 0; }
+            10% { opacity: 0.9; }
+            100% { transform: translateY(110vh); opacity: 0; }
+        }
+
+        .snowflake {
+            position: absolute;
+            font-size: 12px;
+            color: var(--christmas-white);
+            animation: twinkle 3s infinite;
+            text-shadow: 0 0 4px rgba(255,255,255,0.9), 0 0 8px rgba(11,102,35,0.6);
+            filter: blur(0.5px);
+            pointer-events: none;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: translateY(0) scale(1); }
+            50% { opacity: 1; transform: translateY(-4px) scale(1.3); }
+        }
+
+        .rain {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.05));
+            opacity: 0.06;
+            animation: snowDrift 6s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes snowDrift {
+            0% { transform: translateY(-30%); }
+            100% { transform: translateY(30%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles"></div>
+    <div class="rain"></div>
+    <div class="light-sweep-3"></div>
+    <div class="light-sweep-2"></div>
+    <div class="light-sweep"></div>
+    <div class="content">
+        <h1 data-text="WELCOME TO WARNVERLAY ACCESS 1.2">WELCOME TO WARNVERLAY ACCESS 1.2</h1>
+        <p>select the Resolution below</p>
+        <div class="resolution-container">
+            <a href="720p - Copy.html" class="resolution">720p</a>
+            <a href="1080p - Copy.html" class="resolution">1080p</a>
+            <a href="1440p - Copy.html" class="resolution">1440p</a>
+            <a href="2160p - Copy.html" class="resolution">2160p (4K)</a>
+            <a href="warnings.html" class="resolution">Popup Alerts</a>
+            <a href="test.html" class="resolution">Test Popup Alerts</a>
+            <a href="https://www.youtube.com/watch?v=I2t6H0lTaLc&t=24s" class="resolution">Video Tutorial</a>
+            <a href="https://discord.gg/PUQvrMJwS" class="resolution">Discord Server</a>
+        </div>
+    </div>
+    <script>
+        function createStars() {
+            for (let i = 0; i < 18; i++) {
+                const star = document.createElement('div');
+                star.className = 'snowflake';
+                star.textContent = '❆';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                const size = 8 + Math.random() * 18;
+                star.style.fontSize = size + 'px';
+                star.style.opacity = 0.6 + Math.random() * 0.4;
+                star.style.animationDelay = (Math.random() * 3) + 's';
+                star.style.color = ['#ffffff', '#B30000', '#0B6623'][Math.floor(Math.random() * 3)];
+                document.body.appendChild(star);
+            }
+        }
+
+        function createParticles() {
+            const container = document.querySelector('.particles');
+            for (let i = 0; i < 24; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = -Math.random() * 40 + 'vh';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                const colorOptions = ['#ffffff', '#B30000', '#0B6623'];
+                particle.style.backgroundColor = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+                particle.style.opacity = 0.8 + Math.random() * 0.2;
+                const size = (4 + Math.round(Math.random() * 6)) + 'px';
+                particle.style.width = size;
+                particle.style.height = size;
+                container.appendChild(particle);
+            }
+        }
+
+        createStars();
+        createParticles();
+    </script>
+</body>
+</html>
