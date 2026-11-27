@@ -1,0 +1,2860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pop Up Alerts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    html { font-size: min(0.833333vw, 1.481481vh); }
+    body { font-family: Arial, sans-serif; }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(100vw, calc(100vh * (16 / 9)));
+      height: min(100vh, calc(100vw * (9 / 16)));
+      aspect-ratio: 16 / 9;
+      transform: translate(-50%, -50%);
+      overflow: hidden;
+      background-color: rgba(0,0,0,0);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    #overlay img {
+      max-width: 90%; max-height: 90%;
+      opacity: 1;
+      transition: opacity 1.5s ease-in-out;
+    }
+
+    #popupCustomLayer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 16 / 9;
+      z-index: 1;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    #popupCustomLayer .popup-custom-box,
+    #popupCustomLayer .popup-custom-media {
+      position: absolute;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    #popupCustomLayer .popup-custom-box { overflow: visible; }
+    #popupCustomLayer .popup-custom-surface {
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      transform-origin: 0 0;
+      pointer-events: none;
+    }
+    #popupCustomLayer .popup-custom-motion {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    #popupCustomLayer .popup-custom-motion > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 0.25rem;
+      white-space: pre-wrap;
+    }
+    #popupCustomLayer .popup-custom-text-content {
+      display: block;
+      width: 100%;
+      text-align: inherit;
+      white-space: pre-wrap;
+    }
+    #popupCustomLayer .popup-discussion-text-content {
+      min-width: 0;
+      overflow: hidden;
+      white-space: pre;
+    }
+    #popupCustomLayer .popup-area-viewport {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: left;
+      vertical-align: bottom;
+    }
+    #popupCustomLayer .popup-area-text { display: inline-block; white-space: nowrap; }
+    #popupCustomLayer .popup-area-marquee {
+      display: inline-flex;
+      width: max-content;
+    }
+    #popupCustomLayer .popup-area-marquee > span {
+      flex: none;
+      padding-right: 2em;
+    }
+    #popupCustomLayer .popup-custom-media img,
+    #popupCustomLayer .popup-custom-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    @keyframes popup-box-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+    @keyframes popup-box-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.375rem); } }
+    @keyframes popup-box-zoom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    @keyframes popup-light-sweep { 0% { background-position: -40% 50%; } 100% { background-position: 140% 50%; } }
+
+    .text-container {
+      position: absolute;
+      font-size: 2.3rem;
+      font-weight: bold;
+      font-family: 'Bebas Neue', sans-serif;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+      color: rgb(255,255,255);
+    }
+
+    #testCountyContainer {
+      width: 80%;
+      max-width: 90%;
+      overflow: hidden;
+      white-space: nowrap;
+      box-sizing: border-box;
+    }
+    #testCountyContainer.marquee-active { text-align: left; }
+
+    .alert-area-marquee {
+      display: inline-flex;
+      width: max-content;
+    }
+    .alert-area-marquee > span {
+      flex: none;
+      padding-right: 2em;
+    }
+
+    /* Severe Thunderstorm Warning */
+    .severe#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .severe#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+    .considerableSevere#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .considerableSevere#testCountyContainer { color: rgb(255, 255, 255) !important; }
+    .destructiveSevere#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .destructiveSevere#testCountyContainer { color: rgb(255, 255, 255) !important; }
+
+    /* Flash Flood Warning */
+    .flashFlood#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .flashFlood#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+    .considerableFlashFlood#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .considerableFlashFlood#testCountyContainer { color: rgb(255, 255, 255) !important; }
+    .catastrophicFlashFlood#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .catastrophicFlashFlood#testCountyContainer { color: rgb(255, 255, 255) !important; }
+
+    /* Tornado Warning */
+    .tornado#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .tornado#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+    .pdsTornado#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .pdsTornado#testCountyContainer { color: rgb(255, 255, 255) !important; }
+    .tornadoEmergency#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .tornadoEmergency#testCountyContainer { color: rgb(255, 255, 255) !important; }
+
+    /* Special Weather Statement */
+    .specialStatement#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .specialStatement#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Severe Thunderstorm Watch */
+    .severeWatch#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .severeWatch#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Tornado Watch */
+    .tornadoWatch#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .tornadoWatch#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Winter Storm Warning */
+    .winterStorm#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .winterStorm#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Blizzard Warning */
+    .blizzard#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .blizzard#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Tropical Storm Warning */
+    .tropicalStorm#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color as requested */
+    }
+    .tropicalStorm#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color as requested */
+      font-size: 1.3rem;
+    }
+
+    /* Hurricane Warning */
+    .hurricane#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color as requested */
+    }
+    .hurricane#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color as requested */
+      font-size: 1.3rem;
+    }
+
+    /* Snow Squall Warning */
+    .snowSquall#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color requested */
+    }
+    .snowSquall#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color requested */
+      font-size: 1.3rem;
+    }
+
+    /* Winter Storm Watch */
+    .winterWatch#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color */
+    }
+    .winterWatch#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color */
+      font-size: 1.3rem;
+    }
+    @keyframes glow-pulse {
+      0% { box-shadow: 0 0 10px rgba(255, 50, 50, 0.5), inset 0 0 10px rgba(255, 50, 50, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(255, 50, 50, 0.8), inset 0 0 15px rgba(255, 50, 50, 0.3); }
+      100% { box-shadow: 0 0 10px rgba(255, 50, 50, 0.5), inset 0 0 10px rgba(255, 50, 50, 0.2); }
+    }
+    @keyframes menu-glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(255, 50, 50, 0.6), 0 0 30px rgba(255, 50, 50, 0.3), inset 0 0 20px rgba(255, 50, 50, 0.1); }
+      50% { box-shadow: 0 0 25px rgba(255, 50, 50, 0.9), 0 0 40px rgba(255, 50, 50, 0.5), inset 0 0 30px rgba(255, 50, 50, 0.2); }
+    }
+    #menu-icon {
+      position: fixed; top: 10px; left: 10px; width: 40px; height: 40px;
+      cursor: pointer; z-index: 10000; background: linear-gradient(135deg, rgba(100, 20, 20, 0.8), rgba(150, 50, 50, 0.8));
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      animation: glow-pulse 2s ease-in-out infinite; border: 2px solid rgba(255, 50, 50, 0.6);
+      transition: all 0.3s ease; opacity: 0; pointer-events: none;
+    }
+    html:hover #menu-icon, body:hover #menu-icon { opacity: 1; pointer-events: auto; }
+    #menu-icon:hover { box-shadow: 0 0 30px rgba(255, 50, 50, 1), 0 0 60px rgba(255, 50, 50, 0.5); border-color: rgba(255, 100, 100, 1); }
+    #menu-icon span {
+      display: block; width: 24px; height: 3px; background: white; margin: 3px 0;
+      transition: 0.4s; box-shadow: 0 0 5px rgba(255, 50, 50, 0.8);
+    }
+    #alert-menu {
+      position: fixed; top: 60px; left: 10px; width: 280px;
+      background: linear-gradient(135deg, rgba(80, 10, 10, 0.95), rgba(120, 20, 20, 0.95));
+      padding: 15px; border-radius: 8px; z-index: 9000; display: none; max-height: 80vh;
+      overflow-y: scroll; overflow-x: hidden; color: white; border: 1.5px solid rgba(255, 50, 50, 0.5);
+      animation: menu-glow 3s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba(255, 50, 50, 0.4), inset 0 0 20px rgba(255, 50, 50, 0.1);
+      scrollbar-width: thin; scrollbar-color: rgba(255, 50, 50, 0.8) rgba(80, 10, 10, 0.5);
+    }
+    #alert-menu::-webkit-scrollbar { width: 12px; }
+    #alert-menu::-webkit-scrollbar-track { background: rgba(80, 10, 10, 0.5); border-radius: 6px; }
+    #alert-menu::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(255, 100, 100, 0.8), rgba(255, 50, 50, 0.8));
+      border-radius: 6px; border: 1px solid rgba(255, 50, 50, 0.6);
+    }
+    .menu-group { margin-bottom: 20px; position: relative; z-index: 1; }
+    .menu-group h3 {
+      margin: 10px 0 8px; font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+      border-bottom: 2px solid rgba(255, 50, 50, 0.6); padding-bottom: 5px;
+      color: rgba(255, 100, 100, 1); text-shadow: 0 0 10px rgba(255, 50, 50, 0.6);
+    }
+    .alert-toggle {
+      cursor: pointer; display: flex; align-items: center; border: 1.5px solid rgba(255, 50, 50, 0.5);
+      padding: 8px 12px; border-radius: 6px;
+      background: linear-gradient(135deg, rgba(150, 50, 50, 0.3), rgba(130, 30, 30, 0.3));
+      color: white; font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem;
+      margin-bottom: 6px; transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .alert-toggle:hover {
+      background: linear-gradient(135deg, rgba(200, 80, 80, 0.5), rgba(170, 50, 50, 0.5));
+      border-color: rgba(255, 100, 100, 0.8); box-shadow: 0 0 15px rgba(255, 50, 50, 0.6);
+    }
+    .toggle-icon {
+      margin-right: 8px; width: 34px; height: 24px; border-radius: 4px;
+      background: linear-gradient(135deg, #00ff00, #00cc00); display: inline-flex;
+      align-items: center; justify-content: center; color: white; font-size: 0.75rem;
+      font-weight: bold; box-shadow: 0 0 8px rgba(0, 255, 0, 0.6); transition: all 0.3s ease;
+    }
+    .toggle-icon.disabled { background: linear-gradient(135deg, #ff3333, #cc0000); box-shadow: 0 0 8px rgba(255, 0, 0, 0.6); }
+  </style>
+</head>
+<body>
+  <script src="./popup-alert-customizations.js"></script>
+  <div id="overlay">
+    <img id="overlayImage" src="" alt="Warning Image" />
+    <div id="popupCustomLayer" aria-hidden="true"></div>
+    <audio id="overlayAudio" preload="auto"></audio>
+    <div id="testWarningContainer" class="text-container severe"></div>
+    <div id="testCountyContainer"  class="text-container severe"></div>
+  </div>
+  <div id="menu-icon">
+    <span></span><span></span><span></span>
+  </div>
+  <div id="alert-menu">
+    <div class="menu-group">
+      <h3>Alert Categories</h3>
+      <div id="alert-category-list"></div>
+    </div>
+    <div class="menu-group" id="state-group">
+      <h3>State Filters</h3>
+    </div>
+    <div class="menu-group" id="office-filter-group">
+      <h3>Office Filters</h3>
+      <input id="office-search" type="text" placeholder="Search offices or ID" style="width:100%; box-sizing:border-box; padding:8px; margin:10px 0 8px; border-radius:6px; border:1px solid rgba(255,50,50,0.5);" />
+      <div id="office-list" style="max-height:220px; overflow-y:auto; margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <script>
+
+    // Fix: define swsNewIds to prevent ReferenceError and restore pop-up alerts
+    let alertQueue = [], isOverlayActive = false, initialLoad = true;
+    let pollInProgress = false;
+    let pollRequested = false;
+
+    const issuedSevereAlerts       = {};
+    const issuedTornadoAlerts      = {};
+    const issuedFlashFloodAlerts   = {};
+    const issuedSpecialStatementAlerts = {}; // Add tracking for SWS
+    const issuedSevereWatchAlerts  = {}; // Add tracking for SVA
+    const issuedTornadoWatchAlerts = {}; // Add tracking for TOA
+    const issuedWinterStormAlerts  = {}; // Add tracking for WSW
+    const issuedBlizzardAlerts     = {}; // Add tracking for BZW
+    const issuedTropicalStormAlerts = {}; // NEW: tracking for Tropical Storm Warnings
+    const issuedHurricaneAlerts     = {}; // NEW: tracking for Hurricane Warnings
+    const issuedSnowSquallAlerts    = {}; // NEW: tracking for Snow Squall Warnings
+    const issuedWinterWatchAlerts   = {}; // NEW: tracking for Winter Storm Watch (WSA)
+    const issuedMesoscaleDiscussionAlerts = {};
+    const issuedMesoscalePrecipitationDiscussionAlerts = {};
+    const issuedCustomAlerts = {};
+    const issuedDustStormAlerts = {};
+
+    const lastQueuedTime = {
+      tornado: 0,
+      severe: 0,
+      flashFlood: 0,
+      specialStatement: 0, // Add SWS throttle
+      severeWatch: 0, // Add SVA throttle
+      tornadoWatch: 0, // Add TOA throttle
+      winterStorm: 0, // Add WSW throttle
+      blizzard: 0, // Add BZW throttle
+      tropicalStorm: 0,
+      hurricane: 0,
+      snowSquall: 0,
+      winterWatch: 0, // NEW throttle entry for WSA
+      mesoscaleDiscussion: 0,
+      mesoscalePrecipitationDiscussion: 0,
+      dustStorm: 0,
+      custom: 0
+    };
+    const throttleDelay = 0;
+
+    const STORAGE_KEYS = { offices: "popupalertsmyown_officeToggles" };
+    let alertCategoryToggles = {};
+    let selectedOfficeIds = [];
+    let officeToggles = {};
+    let nwsofficeMap = {};
+    let stateToggles = {
+      "AL": true, "AK": true, "AZ": true, "AR": true, "CA": true,
+      "CO": true, "CT": true, "DE": true, "FL": true, "GA": true,
+      "HI": true, "ID": true, "IL": true, "IN": true, "IA": true,
+      "KS": true, "KY": true, "LA": true, "ME": true, "MD": true,
+      "MA": true, "MI": true, "MN": true, "MS": true, "MO": true,
+      "MT": true, "NE": true, "NV": true, "NH": true, "NJ": true,
+      "NM": true, "NY": true, "NC": true, "ND": true, "OH": true,
+      "OK": true, "OR": true, "PA": true, "RI": true, "SC": true,
+      "SD": true, "TN": true, "TX": true, "UT": true, "VT": true,
+      "VA": true, "WA": true, "WV": true, "WI": true, "WY": true,
+      "GU": true, "PR": true, "VI": true, "AS": true, "MP": true
+    };
+
+    async function loadNWSOffices() {
+      try {
+        const resp = await fetch("nwsoffices.json");
+        if (!resp.ok) return;
+        const list = await resp.json();
+        if (!Array.isArray(list)) return;
+        list.forEach(office => {
+          if (!office || !office.officeId) return;
+          const id = office.officeId.toUpperCase();
+          nwsofficeMap[id] = office.name || id;
+          if (!officeToggles[id]) officeToggles[id] = { name: office.name || id, enabled: false };
+        });
+      } catch (error) {
+        console.warn("Could not load nwsoffices.json", error);
+      }
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.offices, JSON.stringify(officeToggles));
+      } catch (error) {
+        console.warn("Could not save office settings", error);
+      }
+    }
+
+    function loadSettings() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.offices) || "{}");
+        if (stored && typeof stored === "object") {
+          Object.keys(stored).forEach(id => {
+            const up = id.toUpperCase();
+            officeToggles[up] = Object.assign(officeToggles[up] || {}, stored[id]);
+          });
+        }
+        selectedOfficeIds = Object.keys(officeToggles).filter(id => officeToggles[id] && officeToggles[id].enabled);
+      } catch (error) {
+        console.warn("Could not load office settings", error);
+      }
+    }
+
+    function formatOfficeDisplayName(officeId, office) {
+      const up = (officeId || "").toUpperCase();
+      const name = nwsofficeMap[up] || (office && office.name) || up;
+      return `${name} (${up})`;
+    }
+
+    function registerOffice(officeId, officeName) {
+      if (!officeId) return;
+      const up = officeId.toUpperCase();
+      if (!officeToggles[up]) {
+        officeToggles[up] = { name: officeName || nwsofficeMap[up] || up, enabled: false };
+      } else if (officeName && (!officeToggles[up].name || officeToggles[up].name === up)) {
+        officeToggles[up].name = officeName;
+      }
+    }
+
+    function registerOfficesFromAlerts(alerts) {
+      if (!Array.isArray(alerts)) return;
+      alerts.forEach(alert => {
+        if (alert && alert.officeId) registerOffice(alert.officeId, alert.officeName);
+      });
+      updateOfficeFilterUI();
+    }
+
+    function updateOfficeFilterUI() {
+      const container = document.getElementById("office-list");
+      if (!container) return;
+      container.innerHTML = "";
+      const search = document.getElementById("office-search");
+      const term = search ? (search.value || "").trim().toLowerCase() : "";
+      let ids = Object.keys(officeToggles).sort((a, b) =>
+        formatOfficeDisplayName(a, officeToggles[a]).localeCompare(formatOfficeDisplayName(b, officeToggles[b])));
+      if (term) {
+        ids = ids.filter(id => {
+          const name = formatOfficeDisplayName(id, officeToggles[id]).toLowerCase();
+          return id.toLowerCase().includes(term) || name.includes(term);
+        });
+      }
+      if (!ids.length) {
+        const placeholder = document.createElement("div");
+        placeholder.className = "alert-toggle";
+        placeholder.style.cursor = "default";
+        placeholder.innerHTML = '<span class="toggle-icon">--</span><span>No office data yet</span>';
+        container.appendChild(placeholder);
+        return;
+      }
+      ids.forEach(id => {
+        const office = officeToggles[id];
+        const div = document.createElement("div");
+        div.className = "alert-toggle";
+        div.setAttribute("data-officeid", id);
+        div.innerHTML = `<span class="toggle-icon">${office.enabled ? "ON" : "OFF"}</span><span>${formatOfficeDisplayName(id, office)}</span>`;
+        div.classList.toggle("selected", office.enabled);
+        const icon = div.querySelector(".toggle-icon");
+        icon.classList.toggle("disabled", !office.enabled);
+        div.addEventListener("click", () => {
+          office.enabled = !office.enabled;
+          div.classList.toggle("selected", office.enabled);
+          icon.textContent = office.enabled ? "ON" : "OFF";
+          icon.classList.toggle("disabled", !office.enabled);
+          selectedOfficeIds = Object.keys(officeToggles).filter(key => officeToggles[key].enabled);
+          saveSettings();
+        });
+        container.appendChild(div);
+      });
+    }
+
+    function applyOfficeFilters(alerts) {
+      if (!selectedOfficeIds.length) return alerts;
+      return alerts.filter(alert => !alert.officeId || selectedOfficeIds.includes(alert.officeId.toUpperCase()));
+    }
+
+    function parseOfficeIdFromSender(sender) {
+      if (!sender) return "";
+      const token = String(sender).split(/[@\s]+/).find(Boolean);
+      return token ? token.toUpperCase() : "";
+    }
+
+    function getOfficeIdFromWMOIdentifier(identifier) {
+      if (!identifier) return "";
+      const parts = String(identifier).trim().split(/\s+/).filter(Boolean);
+      return parts.length >= 2 ? parts[1].toUpperCase() : "";
+    }
+
+    function extractStates(areaDesc) {
+      const matches = String(areaDesc).match(/\b[A-Za-z]{2}\b/g);
+      return matches ? matches.map(state => state.toUpperCase()) : [];
+    }
+
+    function passesStateFilter(areaDesc) {
+      const states = extractStates(areaDesc);
+      if (!states.length) return true;
+      return states.some(state => stateToggles[state]);
+    }
+
+    function alertCategoryEnabled(categoryName) {
+      return alertCategoryToggles[categoryName.toLowerCase()] !== false;
+    }
+
+    function populateSettingsMenu() {
+      const stateContainer = document.getElementById("state-group");
+      Object.keys(stateToggles).forEach(state => {
+        const div = document.createElement("div");
+        div.className = "alert-toggle";
+        div.setAttribute("data-type", state);
+        div.innerHTML = `<span class="toggle-icon">${stateToggles[state] ? "ON" : "OFF"}</span><span>${state}</span>`;
+        div.querySelector(".toggle-icon").classList.toggle("disabled", !stateToggles[state]);
+        div.addEventListener("click", () => {
+          stateToggles[state] = !stateToggles[state];
+          const icon = div.querySelector(".toggle-icon");
+          icon.textContent = stateToggles[state] ? "ON" : "OFF";
+          icon.classList.toggle("disabled", !stateToggles[state]);
+        });
+        stateContainer.appendChild(div);
+      });
+      let customTypes = Object.keys(window.POPUP_ALERT_CUSTOMIZATIONS || {});
+      try {
+        const saved = JSON.parse(localStorage.getItem("warnverlay_popup_editor_v1") || "null");
+        if (saved) {
+          const keys = new Set([
+            ...Object.keys(saved.designs || {}),
+            ...Object.keys(saved.media || {}),
+            ...Object.keys(saved.audio || {}),
+            ...Object.keys(saved.alertTextOverrides || {})
+          ]);
+          keys.forEach(type => {
+            const designed = Array.isArray(saved.designs && saved.designs[type]) && saved.designs[type].length > 0;
+            const hasMedia = !!(saved.media && saved.media[type] && saved.media[type].src);
+            const hasAudio = !!(saved.audio && saved.audio[type] && saved.audio[type].src);
+            const overrides = saved.alertTextOverrides && saved.alertTextOverrides[type];
+            const hasText = !!(overrides && (overrides.normal || overrides.upgraded));
+            if (designed || hasMedia || hasAudio || hasText) customTypes.push(type);
+          });
+        }
+      } catch (error) {
+        console.warn("Could not read popup editor alert categories", error);
+      }
+      const categoryList = document.getElementById("alert-category-list");
+      [...new Set(customTypes)].sort((a, b) => a.localeCompare(b)).forEach(type => {
+        const key = type.toLowerCase();
+        alertCategoryToggles[key] = alertCategoryToggles[key] !== false;
+        const div = document.createElement("div");
+        div.className = "alert-toggle";
+        div.setAttribute("data-category", key);
+        div.innerHTML = `<span class="toggle-icon">${alertCategoryToggles[key] ? "ON" : "OFF"}</span><span>${type}</span>`;
+        div.querySelector(".toggle-icon").classList.toggle("disabled", !alertCategoryToggles[key]);
+        div.addEventListener("click", () => {
+          alertCategoryToggles[key] = !alertCategoryToggles[key];
+          const icon = div.querySelector(".toggle-icon");
+          icon.textContent = alertCategoryToggles[key] ? "ON" : "OFF";
+          icon.classList.toggle("disabled", !alertCategoryToggles[key]);
+        });
+        categoryList.appendChild(div);
+      });
+
+      document.getElementById("menu-icon").addEventListener("click", () => {
+        const menu = document.getElementById("alert-menu");
+        menu.style.display = window.getComputedStyle(menu).display === "none" ? "block" : "none";
+      });
+      const officeSearch = document.getElementById("office-search");
+      if (officeSearch) officeSearch.addEventListener("input", updateOfficeFilterUI);
+    }
+
+    function getText(node, tag) {
+      return node.querySelector(tag)?.textContent || "";
+    }
+
+    const ALERT_FIELD_NAMES = {
+      MAX_HAIL_SIZE: "MaxHailSize",
+      TORNADO_DAMAGE_THREAT: "TornadoDamageThreat",
+      TORNADO: "Tornado",
+      FLASH_FLOOD: "FlashFlood",
+      FLASH_FLOOD_DAMAGE_THREAT: "FlashFloodDamageThreat",
+      THUNDERSTORM_DAMAGE_THREAT: "ThunderstormDamageThreat",
+      MAX_WIND_GUST: "MaxWindGust",
+      WIND_THREAT: "WindThreat",
+      HAIL_THREAT: "HailThreat",
+      HAZARD: "Hazard",
+      SOURCE: "Source",
+      IMPACT: "Impact"
+    };
+
+    function extractAlertFieldsFromWarnverlay(alertInfo) {
+      const info = alertInfo || {};
+      const fields = {};
+      Object.entries(ALERT_FIELD_NAMES).forEach(([apiName, token]) => {
+        const camelName = token[0].toLowerCase() + token.slice(1);
+        const value = info[apiName] ?? info[token] ?? info[camelName];
+        if (value != null && String(value).trim()) fields[token] = String(value).trim();
+      });
+      return fields;
+    }
+
+    function extractAlertFieldsFromAtom(entry) {
+      const atomNames = Object.fromEntries(
+        Object.values(ALERT_FIELD_NAMES).map(token => [(token[0].toLowerCase() + token.slice(1)).toLowerCase(), token])
+      );
+      const fields = {};
+      Array.from(entry.getElementsByTagName("cap:parameter")).forEach(parameter => {
+        const name = getText(parameter, "valueName").trim().toLowerCase();
+        const token = atomNames[name];
+        const value = getText(parameter, "value").trim();
+        if (token && value) fields[token] = value;
+      });
+      return fields;
+    }
+
+    // replace previous generateAlertKey with id-aware version
+    const normalizeArea = area => area.toLowerCase().trim();
+
+    function generateAlertKey(eventText, areaDesc, id) {
+      // prefer using a stable id when available so two different alerts
+      // with identical text/areas are not treated as the same record
+      if (id) return `${eventText.toLowerCase().trim()}|${normalizeArea(areaDesc)}|id:${id}`;
+      return `${eventText.toLowerCase().trim()}|${normalizeArea(areaDesc)}`;
+    }
+
+    function formatAreaDesc(areaDesc) {
+      const areas = areaDesc.split(";")
+        .map(a => a.trim())
+        .filter(a => a);
+      return areas.join("; ");
+    }
+
+    function enqueueAlertRaw(options) {
+      const { type, alertKey, force } = options;
+      const issuedMap = {
+        severe: issuedSevereAlerts,
+        tornado: issuedTornadoAlerts,
+        flashFlood: issuedFlashFloodAlerts,
+        specialStatement: issuedSpecialStatementAlerts,
+        severeWatch: issuedSevereWatchAlerts,
+        tornadoWatch: issuedTornadoWatchAlerts,
+        winterStorm: issuedWinterStormAlerts,
+        blizzard: issuedBlizzardAlerts,
+        tropicalStorm: issuedTropicalStormAlerts,
+        hurricane: issuedHurricaneAlerts,
+        snowSquall: issuedSnowSquallAlerts,
+        winterWatch: issuedWinterWatchAlerts, // NEW mapping for WSA
+        mesoscaleDiscussion: issuedMesoscaleDiscussionAlerts,
+        mesoscalePrecipitationDiscussion: issuedMesoscalePrecipitationDiscussionAlerts,
+        dustStorm: issuedDustStormAlerts,
+        custom: issuedCustomAlerts
+      }[type];
+
+      if (issuedMap[alertKey]?.queued && !force) return;
+
+      const now = Date.now();
+      if (now - lastQueuedTime[type] < throttleDelay) return;
+      lastQueuedTime[type] = now;
+
+      alertQueue.push(options);
+      if (!issuedMap[alertKey]) {
+        issuedMap[alertKey] = {
+          state: options.state,
+          queued: true,
+          lastDisplayed: options.state
+        };
+      } else {
+        issuedMap[alertKey].queued = true;
+      }
+
+      // if nothing is currently showing, start processing immediately
+      // (prevents waiting for the next poll cycle)
+      if (!isOverlayActive) {
+        processNextAlert();
+      }
+    }
+
+    function processNextAlert() {
+      if (!alertQueue.length) return;
+      isOverlayActive = true;
+      triggerWarning(alertQueue.shift());
+    }
+
+    function getPopupCustomizationType(opts) {
+      if (opts.customizationType) return opts.customizationType;
+      if (opts.type === "severe") {
+        return opts.destructive ? "Destructive Severe Thunderstorm Warning" :
+          opts.considerable ? "Considerable Severe Thunderstorm Warning" : "Severe Thunderstorm Warning";
+      }
+      if (opts.type === "tornado") {
+        return opts.emergency ? "Tornado Emergency" : opts.pds ? "PDS Tornado Warning" :
+          opts.state === "OBSERVED" ? "Observed Tornado Warning" : "Tornado Warning";
+      }
+      if (opts.type === "flashFlood") {
+        return opts.flashFloodCatastrophic ? "Flash Flood Emergency" :
+          opts.flashFloodConsiderable ? "Considerable Flash Flood Warning" : "Flash Flood Warning";
+      }
+      return ({
+        specialStatement: "Special Weather Statement",
+        severeWatch: "Severe Thunderstorm Watch",
+        tornadoWatch: "Tornado Watch",
+        winterStorm: "Winter Storm Warning",
+        blizzard: "Blizzard Warning",
+        tropicalStorm: "Tropical Storm Warning",
+        hurricane: "Hurricane Warning",
+        snowSquall: "Snow Squall Warning",
+        winterWatch: "Winter Storm Watch",
+        dustStorm: opts.pds ? "PDS Dust Storm Warning" : "Dust Storm Warning",
+        mesoscaleDiscussion: "Mesoscale Discussion",
+        mesoscalePrecipitationDiscussion: "Mesoscale Percipitation Discussion"
+      })[opts.type] || "";
+    }
+
+    function popupPixelsToRem(value) {
+      return `${Number(value) / 16}rem`;
+    }
+
+    function getPopupTextShadow(box, includeOutline = true, includeShadows = true) {
+      const shadows = [];
+      const outline = Number(box.textOutlineWidth);
+      if (includeOutline && box.textOutlinePosition === "outside" && Number.isFinite(outline) && outline > 0) {
+        const color = box.textOutlineColor || "#000000";
+        const width = Math.max(0, outline);
+        if (box.textOutlineStyle === "rounded") {
+          const ringCount = Math.max(12, Math.min(48, Math.ceil(width * 10)));
+          for (let i = 0; i < ringCount; i += 1) {
+            const angle = (Math.PI * 2 * i) / ringCount;
+            const dx = (Math.cos(angle) * width).toFixed(2);
+            const dy = (Math.sin(angle) * width).toFixed(2);
+            shadows.push(`${popupPixelsToRem(dx)} ${popupPixelsToRem(dy)} 0 ${color}`);
+          }
+        } else {
+          const radius = Math.ceil(width);
+          for (let x = -radius; x <= radius; x += 1) {
+            const scaledX = (x / radius) * width;
+            shadows.push(`${popupPixelsToRem(scaledX)} ${popupPixelsToRem(-width)} 0 ${color}`,
+              `${popupPixelsToRem(scaledX)} ${popupPixelsToRem(width)} 0 ${color}`);
+          }
+          for (let y = -radius + 1; y <= radius - 1; y += 1) {
+            const scaledY = (y / radius) * width;
+            shadows.push(`${popupPixelsToRem(-width)} ${popupPixelsToRem(scaledY)} 0 ${color}`,
+              `${popupPixelsToRem(width)} ${popupPixelsToRem(scaledY)} 0 ${color}`);
+          }
+        }
+      }
+      const size = Number(box.textDropShadowSize);
+      if (includeShadows && box.textDropShadowEnabled && Number.isFinite(size) && size > 0) {
+        const angle = (Number(box.textDropShadowAngle) || 45) * Math.PI / 180;
+        const distance = Number(box.textDropShadowDistance) || 5;
+        const offsetX = Math.round(Math.cos(angle) * distance);
+        const offsetY = Math.round(Math.sin(angle) * distance);
+        const opacityValue = box.textDropShadowOpacity == null ? 100 : Number(box.textDropShadowOpacity);
+        const opacity = Math.max(0, Math.min(100, Number.isFinite(opacityValue) ? opacityValue : 100)) / 100;
+        const color = box.textDropShadowColor || "#000000";
+        const rgb = /^#([0-9a-f]{6})$/i.exec(color);
+        const shadowColor = rgb ?
+          `rgba(${parseInt(rgb[1].slice(0, 2), 16)}, ${parseInt(rgb[1].slice(2, 4), 16)}, ${parseInt(rgb[1].slice(4, 6), 16)}, ${opacity})` :
+          color;
+        const blur = Math.max(0, size);
+        shadows.push(`${popupPixelsToRem(offsetX)} ${popupPixelsToRem(offsetY)} ${popupPixelsToRem(blur)} ${shadowColor}`);
+        const spread = Math.max(0, Number(box.textDropShadowSpread) || 0);
+        if (spread > 0) {
+          const stepCount = Math.max(1, Math.min(4, Math.floor(spread / 8) + 1));
+          for (let i = 1; i <= stepCount; i += 1) {
+            shadows.push(
+              `${popupPixelsToRem(offsetX + i)} ${popupPixelsToRem(offsetY)} ${popupPixelsToRem(blur)} ${shadowColor}`,
+              `${popupPixelsToRem(offsetX - i)} ${popupPixelsToRem(offsetY)} ${popupPixelsToRem(blur)} ${shadowColor}`,
+              `${popupPixelsToRem(offsetX)} ${popupPixelsToRem(offsetY + i)} ${popupPixelsToRem(blur)} ${shadowColor}`,
+              `${popupPixelsToRem(offsetX)} ${popupPixelsToRem(offsetY - i)} ${popupPixelsToRem(blur)} ${shadowColor}`
+            );
+          }
+        }
+      }
+      if (includeShadows && Number(box.textShadowSize) > 0) {
+        shadows.push(`${popupPixelsToRem(2)} ${popupPixelsToRem(2)} ${popupPixelsToRem(Number(box.textShadowSize))} ${box.textShadowColor || "#000000"}`);
+      }
+      return shadows.length ? shadows.join(", ") : "none";
+    }
+
+    function appendPopupTextEffectLayer(motionLayer, text, shadow, zIndex) {
+      if (!shadow || shadow === "none") return;
+      const effect = text.cloneNode(true);
+      effect.setAttribute("aria-hidden", "true");
+      effect.style.position = "absolute";
+      effect.style.inset = "0";
+      effect.style.zIndex = String(zIndex);
+      effect.style.color = "transparent";
+      effect.style.backgroundImage = "none";
+      effect.style.backgroundClip = "initial";
+      effect.style.webkitBackgroundClip = "initial";
+      effect.style.webkitTextFillColor = "transparent";
+      effect.style.webkitTextStroke = "0px transparent";
+      effect.style.textShadow = shadow;
+      motionLayer.appendChild(effect);
+    }
+
+    function renderPopupCustomization(alertType, eventText, areaDesc, concerning = "", discussionFields = {}) {
+      const layer = document.getElementById("popupCustomLayer");
+      if (!layer) return;
+      layer.replaceChildren();
+      layer.dataset.alertType = "";
+      const allCustomizations = window.POPUP_ALERT_CUSTOMIZATIONS;
+      if (!allCustomizations || !Object.prototype.hasOwnProperty.call(allCustomizations, alertType)) return;
+      const config = allCustomizations[alertType];
+      if (!config || typeof config !== "object") return;
+      layer.dataset.alertType = alertType;
+
+      let hasEventText = false;
+      let hasAreaText = false;
+      let hasCustomText = false;
+      const media = config.media;
+      if (media && typeof media.src === "string" && media.src) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "popup-custom-media";
+        const mediaElement = document.createElement(media.mediaType === "video" ? "video" : "img");
+        mediaElement.src = media.src;
+        if (mediaElement instanceof HTMLVideoElement) {
+          mediaElement.muted = true;
+          mediaElement.loop = true;
+          mediaElement.autoplay = true;
+          mediaElement.playsInline = true;
+        }
+        mediaElement.draggable = false;
+        wrapper.appendChild(mediaElement);
+        layer.appendChild(wrapper);
+      }
+
+      (Array.isArray(config.boxes) ? config.boxes : []).forEach((box, index) => {
+        if (!box || ![box.x, box.y, box.width, box.height].every((value) => Number.isFinite(Number(value)))) return;
+        const element = document.createElement("div");
+        element.className = "popup-custom-box";
+        element.dataset.boxIndex = String(index);
+        const surface = document.createElement("div");
+        surface.className = "popup-custom-surface";
+        const motionLayer = document.createElement("div");
+        motionLayer.className = "popup-custom-motion";
+
+        if (typeof box.text === "string" && box.text.trim()) {
+          hasCustomText = true;
+          const text = document.createElement("span");
+          const alertFields = discussionFields.alertFields || {};
+          const tokens = {
+            AlertName: eventText,
+            Areas: areaDesc,
+            Conserning: concerning,
+            Concerning: concerning,
+            WatchProbability: discussionFields.watchProbability == null ? "" : String(discussionFields.watchProbability),
+            MostProbablePeakTornadoIntensity: discussionFields.mostProbablePeakTornadoIntensity == null ? "" : String(discussionFields.mostProbablePeakTornadoIntensity),
+            MostProbablePeakWindGust: discussionFields.mostProbablePeakWindGust == null ? "" : String(discussionFields.mostProbablePeakWindGust),
+            MaxHailSize: alertFields.MaxHailSize == null ? "" : String(alertFields.MaxHailSize),
+            TornadoDamageThreat: alertFields.TornadoDamageThreat == null ? "" : String(alertFields.TornadoDamageThreat),
+            Tornado: alertFields.Tornado == null ? "" : String(alertFields.Tornado),
+            FlashFlood: alertFields.FlashFlood == null ? "" : String(alertFields.FlashFlood),
+            FlashFloodDamageThreat: alertFields.FlashFloodDamageThreat == null ? "" : String(alertFields.FlashFloodDamageThreat),
+            ThunderstormDamageThreat: alertFields.ThunderstormDamageThreat == null ? "" : String(alertFields.ThunderstormDamageThreat),
+            MaxWindGust: alertFields.MaxWindGust == null ? "" : String(alertFields.MaxWindGust),
+            WindThreat: alertFields.WindThreat == null ? "" : String(alertFields.WindThreat),
+            HailThreat: alertFields.HailThreat == null ? "" : String(alertFields.HailThreat),
+            Hazard: alertFields.Hazard == null ? "" : String(alertFields.Hazard),
+            Source: alertFields.Source == null ? "" : String(alertFields.Source),
+            Impact: alertFields.Impact == null ? "" : String(alertFields.Impact),
+            AlertInstructions: "",
+            ExpireTime: "",
+            TornadoWarnings: eventText,
+            SevereThunderstormWarnings: eventText,
+            FloodAlerts: eventText,
+            WinterWeatherAlerts: eventText
+          };
+
+          let rawText = box.text.trim();
+          const alertFieldTokens = [
+            "MaxHailSize", "TornadoDamageThreat", "Tornado", "FlashFlood",
+            "FlashFloodDamageThreat", "ThunderstormDamageThreat", "MaxWindGust",
+            "WindThreat", "HailThreat", "Hazard", "Source", "Impact"
+          ];
+          alertFieldTokens.forEach(token => {
+            if (tokens[token].trim()) return;
+            const segmentPattern = new RegExp(`(^|[|\\n])\\s*[^|\\n]*\\(${token}\\)[^|\\n]*(?=$|[|\\n])`, "g");
+            rawText = rawText.replace(segmentPattern, "$1");
+          });
+          rawText = rawText
+            .replace(/^\s*\|\s*/, "")
+            .replace(/\s*\|\s*$/, "")
+            .replace(/\s*\|\s*\|\s*/g, " | ")
+            .replace(/\n{2,}/g, "\n");
+          const alertOverride = (window.POPUP_ALERT_CUSTOMIZATIONS && window.POPUP_ALERT_CUSTOMIZATIONS[alertType] && window.POPUP_ALERT_CUSTOMIZATIONS[alertType].textOverrides && window.POPUP_ALERT_CUSTOMIZATIONS[alertType].textOverrides.normal) || "";
+          const upgradedOverride = (window.POPUP_ALERT_CUSTOMIZATIONS && window.POPUP_ALERT_CUSTOMIZATIONS[alertType] && window.POPUP_ALERT_CUSTOMIZATIONS[alertType].textOverrides && window.POPUP_ALERT_CUSTOMIZATIONS[alertType].textOverrides.upgraded) || "";
+          const fallbackAlertName = (/(upgraded|upgraded alert)/i.test(eventText) ? upgradedOverride : alertOverride) || eventText;
+          const literalMatch = rawText.toLowerCase() === eventText.toLowerCase() || rawText.toLowerCase() === "alertname" || rawText.toLowerCase() === "[alertname]" || rawText.toLowerCase() === "(alertname)";
+
+          let renderedText = rawText.replace(/\((AlertName|Areas|Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MostProbablePeakWindGust|MaxHailSize|TornadoDamageThreat|Tornado|FlashFlood|FlashFloodDamageThreat|ThunderstormDamageThreat|MaxWindGust|WindThreat|HailThreat|Hazard|Source|Impact|AlertInstructions|ExpireTime|TornadoWarnings|SevereThunderstormWarnings|FloodAlerts|WinterWeatherAlerts)\)/g, (match, token) => {
+            if (token === "AlertName" || token.endsWith("Warnings") || token === "FloodAlerts") hasEventText = true;
+            if (token === "Areas") hasAreaText = true;
+            return tokens[token] || "";
+          });
+
+          if (literalMatch && fallbackAlertName) {
+            renderedText = fallbackAlertName;
+            hasEventText = true;
+          }
+          const hasDiscussionTokens = /\((Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MostProbablePeakWindGust)\)/.test(rawText);
+          const hasRecognizedTokens = /\((AlertName|Areas|Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MostProbablePeakWindGust|MaxHailSize|TornadoDamageThreat|Tornado|FlashFlood|FlashFloodDamageThreat|ThunderstormDamageThreat|MaxWindGust|WindThreat|HailThreat|Hazard|Source|Impact|AlertInstructions|ExpireTime|TornadoWarnings|SevereThunderstormWarnings|FloodAlerts|WinterWeatherAlerts)\)/.test(rawText);
+          if (!literalMatch && hasRecognizedTokens) {
+            const content = document.createElement("span");
+            content.className = "popup-custom-text-content";
+            if (hasDiscussionTokens) {
+              content.classList.add("popup-discussion-text-content");
+            }
+            const tokenPattern = /\((AlertName|Areas|Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MaxHailSize|TornadoDamageThreat|Tornado|FlashFlood|FlashFloodDamageThreat|ThunderstormDamageThreat|MaxWindGust|WindThreat|HailThreat|Hazard|Source|Impact|AlertInstructions|ExpireTime|TornadoWarnings|SevereThunderstormWarnings|FloodAlerts|WinterWeatherAlerts)\)/g;
+            let lastIndex = 0;
+            let hasRenderedContent = false;
+            let hasSkippedToken = false;
+            const appendText = (value) => {
+              let textValue = value;
+              if (!hasRenderedContent && (rawText.includes("(Areas)") || hasDiscussionTokens || hasSkippedToken)) {
+                textValue = textValue.replace(/^[\s,;|·•]+/, "");
+              }
+              if (textValue) content.appendChild(document.createTextNode(textValue));
+              if (textValue.trim()) hasRenderedContent = true;
+            };
+            let tokenMatch;
+            while ((tokenMatch = tokenPattern.exec(rawText))) {
+              const tokenValue = tokens[tokenMatch[1]] || "";
+              const isMissingToken = !tokenValue.trim();
+              if (!isMissingToken) appendText(rawText.slice(lastIndex, tokenMatch.index));
+              if (isMissingToken) {
+                hasSkippedToken = true;
+                lastIndex = tokenPattern.lastIndex;
+                continue;
+              }
+              if (tokenMatch[1] === "Areas") {
+                const viewport = document.createElement("span");
+                viewport.className = "popup-area-viewport";
+                const areaText = document.createElement("span");
+                areaText.className = "popup-area-text";
+                areaText.textContent = areaDesc;
+                viewport.appendChild(areaText);
+                content.appendChild(viewport);
+                if (areaDesc.trim()) hasRenderedContent = true;
+              } else {
+                appendText(tokenValue);
+              }
+              lastIndex = tokenPattern.lastIndex;
+            }
+            appendText(rawText.slice(lastIndex));
+            text.appendChild(content);
+          } else {
+            text.textContent = renderedText;
+          }
+          appendPopupTextEffectLayer(motionLayer, text, getPopupTextShadow(box, false, true), 1);
+          if (box.textOutlinePosition === "outside") {
+            appendPopupTextEffectLayer(motionLayer, text, getPopupTextShadow(box, true, false), 2);
+          }
+          text.style.position = "relative";
+          text.style.zIndex = "3";
+          text.style.textShadow = "none";
+          if (box.textOutlinePosition !== "outside" && Number(box.textOutlineWidth) > 0) {
+            text.style.webkitTextStroke = `${popupPixelsToRem(Number(box.textOutlineWidth))} ${box.textOutlineColor || "#000000"}`;
+            text.style.paintOrder = "stroke fill";
+          } else {
+            text.style.webkitTextStroke = "0px transparent";
+            text.style.paintOrder = "";
+          }
+          motionLayer.appendChild(text);
+        }
+        surface.appendChild(motionLayer);
+        element.appendChild(surface);
+        layer.appendChild(element);
+      });
+
+      if (hasCustomText || hasEventText) document.getElementById("testWarningContainer").style.display = "none";
+      if (hasCustomText || hasAreaText) document.getElementById("testCountyContainer").style.display = "none";
+    }
+
+    function startPopupAreaMarquees(layer) {
+      const animations = [];
+      layer.querySelectorAll(".popup-discussion-text-content").forEach(content => {
+        if (content.scrollWidth <= content.clientWidth) return;
+
+        const marquee = document.createElement("span");
+        marquee.className = "popup-area-marquee";
+        const item = document.createElement("span");
+        item.textContent = content.textContent;
+        marquee.appendChild(item);
+        content.replaceChildren(marquee);
+        const distance = item.scrollWidth;
+        const animation = marquee.animate(
+          [{ transform: "translateX(0)" }, { transform: `translateX(-${distance}px)` }],
+          { duration: Math.max(8000, distance / 130 * 1000), easing: "linear", fill: "forwards" }
+        );
+        animations.push(animation.finished);
+      });
+      layer.querySelectorAll(".popup-area-viewport").forEach(viewport => {
+        const areaText = viewport.querySelector(".popup-area-text");
+        if (!areaText || areaText.scrollWidth <= viewport.clientWidth) return;
+
+        const marquee = document.createElement("span");
+        marquee.className = "popup-area-marquee";
+        const item = document.createElement("span");
+        item.textContent = areaText.textContent;
+        marquee.appendChild(item);
+        viewport.replaceChildren(marquee);
+        const distance = marquee.scrollWidth;
+        const animation = marquee.animate(
+          [{ transform: "translateX(0)" }, { transform: `translateX(-${distance}px)` }],
+          { duration: Math.max(8000, distance / 130 * 1000), easing: "linear", fill: "forwards" }
+        );
+        animations.push(animation.finished);
+      });
+      return Promise.all(animations);
+    }
+
+    function startAlertAreaMarquee(element) {
+      if (!element || element.scrollWidth <= element.clientWidth) return Promise.resolve();
+      element.classList.add("marquee-active");
+      const marquee = document.createElement("span");
+      marquee.className = "alert-area-marquee";
+      const item = document.createElement("span");
+      item.textContent = element.textContent;
+      marquee.appendChild(item);
+      element.replaceChildren(marquee);
+      const distance = item.scrollWidth;
+      return marquee.animate(
+        [{ transform: "translateX(0)" }, { transform: `translateX(-${distance}px)` }],
+        { duration: Math.max(8000, distance / 130 * 1000), easing: "linear", fill: "forwards" }
+      ).finished;
+    }
+
+    function popupBounceOut(progress) {
+      const n1 = 7.5625;
+      const d1 = 2.75;
+      if (progress < 1 / d1) return n1 * progress * progress;
+      if (progress < 2 / d1) return n1 * (progress -= 1.5 / d1) * progress + 0.75;
+      if (progress < 2.5 / d1) return n1 * (progress -= 2.25 / d1) * progress + 0.9375;
+      return n1 * (progress -= 2.625 / d1) * progress + 0.984375;
+    }
+
+    function popupEase(name, progress) {
+      if (name === "CubicEasingIn") return progress * progress * progress;
+      if (name === "CubicEasingOut") return 1 - Math.pow(1 - progress, 3);
+      if (name === "CubicEasingInOut") return progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      if (name === "BounceIn") return 1 - popupBounceOut(1 - progress);
+      if (name === "BounceOut") return popupBounceOut(progress);
+      return progress;
+    }
+
+    function computePopupTransitionMotion(board, progress, config, rect) {
+      const type = config.type || "None";
+      const dx = Number(config.dirX) || 0;
+      const dy = Number(config.dirY) || 0;
+      const dirX = dx === 0 && dy === 0 ? 0 : dx;
+      const dirY = dx === 0 && dy === 0 ? -1 : dy;
+      const distance = Math.max(rect.width, rect.height) * 0.55 * (type === "Scroll" ? 1.35 : 1);
+      const visibleIn = progress;
+      const visibleOut = 1 - progress;
+      const motion = (opacity = 1, tx = 0, ty = 0, sx = 1, sy = 1, rotate = 0, origin = "", clipPath = "none") => ({
+        opacity, transform: `translate(${tx}px, ${ty}px) scale(${sx}, ${sy}) rotate(${rotate}deg)`,
+        transformOrigin: origin, clipPath, _motion: { tx, ty, sx, sy, rotate, origin }
+      });
+
+      if (Array.isArray(config._parallelStages)) {
+        const elapsed = Math.max(0, Math.min(1, progress)) * config._parallelDurationMs;
+        const motions = config._parallelStages.map(stage => {
+          const delayMs = Math.max(0, Number(stage.delay) || 0) * 1000;
+          const durationMs = Math.max(0, Number(stage.duration) || 0) * 1000;
+          const stageProgress = elapsed < delayMs ? 0 : durationMs <= 0 ? 1 : Math.min(1, (elapsed - delayMs) / durationMs);
+          const eased = popupEase(stage.easing, stageProgress);
+          return computePopupTransitionMotion(board, stage.reverse ? 1 - eased : eased, {
+            ...stage,
+            _originX: config._originX,
+            _originY: config._originY
+          }, rect);
+        });
+        const combined = motions.reduce((result, item, index) => {
+          const value = item._motion;
+          if (index === 0) return { ...value, opacity: item.opacity };
+          result.opacity *= item.opacity;
+          result.tx += value.tx;
+          result.ty += value.ty;
+          result.sx *= value.sx;
+          result.sy *= value.sy;
+          result.rotate += value.rotate;
+          if (value.origin) result.origin = value.origin;
+          return result;
+        }, { opacity: 1, tx: 0, ty: 0, sx: 1, sy: 1, rotate: 0, origin: "", clipPath: "none" });
+        const clipPaths = motions.map(item => item.clipPath).filter(clipPath => clipPath && clipPath !== "none");
+        let clipPath = clipPaths[clipPaths.length - 1] || "none";
+        if (clipPaths.length > 1 && clipPaths.every(value => /^inset\(/i.test(value))) {
+          const insets = clipPaths.map(value => {
+            const values = value.match(/^inset\(([^)]+)\)$/i)[1].split(/\s+/).map(parseFloat);
+            if (values.length === 1) return [values[0], values[0], values[0], values[0]];
+            if (values.length === 2) return [values[0], values[1], values[0], values[1]];
+            if (values.length === 3) return [values[0], values[1], values[2], values[1]];
+            return values.slice(0, 4);
+          });
+          clipPath = `inset(${[0, 1, 2, 3].map(index => Math.max(...insets.map(inset => inset[index]))).join("% ")}%)`;
+        }
+        return motion(combined.opacity, combined.tx, combined.ty, combined.sx, combined.sy,
+          combined.rotate, combined.origin, clipPath);
+      }
+
+      if (type === "None") return motion();
+      if (type === "Hidden" || type === "Cut") return motion(board === "in" ? (progress >= 1 ? 1 : 0) : (progress >= 1 ? 0 : 1));
+      if (type === "Fade") return motion(board === "in" ? visibleIn : visibleOut);
+      if (type === "Fly" || type === "Scroll") {
+        return board === "in" ? motion(visibleIn, -dirX * distance * (1 - progress), -dirY * distance * (1 - progress)) :
+          motion(visibleOut, dirX * distance * progress, dirY * distance * progress);
+      }
+      if (type === "Zoom" || type === "ZoomFade" || type === "Expand") {
+        let scale = board === "in" ? progress : 1 - progress;
+        if (type === "Expand") scale *= scale;
+        scale = Math.max(0.001, scale);
+        return motion(type === "ZoomFade" ? (board === "in" ? visibleIn : visibleOut) : 1, 0, 0, scale, scale, 0, "center center");
+      }
+      if (type === "Rotate") {
+        const sign = dirX < 0 ? -1 : dirX > 0 ? 1 : dirY >= 0 ? 1 : -1;
+        return motion(board === "in" ? visibleIn : visibleOut, 0, 0, 1, 1,
+          board === "in" ? (1 - progress) * 360 * sign : progress * 360 * sign, "center center");
+      }
+      if (type === "Reveal") {
+        const visible = board === "in" ? progress : 1 - progress;
+        const origin = `${dirX < 0 ? "left" : dirX > 0 ? "right" : "center"} ${dirY < 0 ? "top" : dirY > 0 ? "bottom" : "center"}`;
+        const scale = Math.max(0.001, visible);
+        return motion(1, 0, 0, dirX && dirY ? scale : dirX ? scale : 1, dirX && dirY ? scale : dirY ? scale : 1, 0, origin);
+      }
+      if (type === "Wipe") {
+        const amount = (board === "in" ? 1 - progress : progress) * 100;
+        let clipPath;
+        if (Math.abs(dirX) >= Math.abs(dirY)) {
+          clipPath = dirX < 0 ? `inset(0 ${amount}% 0 0)` : dirX > 0 ? `inset(0 0 0 ${amount}%)` :
+            dirY < 0 ? `inset(${amount}% 0 0 0)` : `inset(0 0 ${amount}% 0)`;
+        } else {
+          clipPath = dirY < 0 ? `inset(${amount}% 0 0 0)` : `inset(0 0 ${amount}% 0)`;
+        }
+        return motion(1, 0, 0, 1, 1, 0, "", clipPath);
+      }
+      if (type === "MotionPath" && Array.isArray(config.motionPath) && config.motionPath.length > 1) {
+        const points = config.motionPath;
+        const lengths = [];
+        let total = 0;
+        for (let i = 1; i < points.length; i += 1) {
+          const length = Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+          lengths.push(length);
+          total += length;
+        }
+        let remaining = progress * total;
+        let target = { ...points[points.length - 1], angle: 0 };
+        for (let i = 0; i < lengths.length; i += 1) {
+          const segmentLength = lengths[i];
+          if (remaining <= segmentLength || i === lengths.length - 1) {
+            const start = points[i];
+            const end = points[i + 1];
+            const amount = segmentLength ? remaining / segmentLength : 0;
+            target = {
+              x: start.x + (end.x - start.x) * amount,
+              y: start.y + (end.y - start.y) * amount,
+              angle: Math.atan2(end.y - start.y, end.x - start.x) * 180 / Math.PI
+            };
+            break;
+          }
+          remaining -= segmentLength;
+        }
+        const originX = Number(config._originX) || 0;
+        const originY = Number(config._originY) || 0;
+        const start = points[0];
+        const tx = board === "in" ? ((target.x - originX) / 100) * rect.width : ((target.x - start.x) / 100) * rect.width;
+        const ty = board === "in" ? ((target.y - originY) / 100) * rect.height : ((target.y - start.y) / 100) * rect.height;
+        return motion(1, tx, ty, 1, 1, config.autoRotate ? target.angle : 0, "center center");
+      }
+      if (type === "Bounce") {
+        const bounced = popupBounceOut(progress);
+        return board === "in" ? motion(visibleIn, -dirX * distance * (1 - bounced), -dirY * distance * (1 - bounced), 0.25 + 0.75 * bounced, 0.25 + 0.75 * bounced, 0, "center center") :
+          motion(visibleOut, dirX * distance * bounced, dirY * distance * bounced, Math.max(0.001, 1 - 0.75 * bounced), Math.max(0.001, 1 - 0.75 * bounced), 0, "center center");
+      }
+      if (type === "ImageSequence") {
+        const opacity = progress <= 0.05 ? (board === "in" ? 0 : 1) : progress >= 0.95 ? (board === "in" ? 1 : 0) : 0.25 + 0.75 * (Math.floor(progress * 16) % 2);
+        return motion(opacity);
+      }
+      return motion();
+    }
+
+    function compensatePopupTransitionDelay(config, compensationMs) {
+      if (!config || !Number.isFinite(compensationMs) || compensationMs <= 0) return config;
+      const delay = Math.max(0, Number(config.delay) || 0) * 1000;
+      return {
+        ...config,
+        delay: Math.max(0, delay - compensationMs) / 1000,
+        ...(config.secondAnimation ? {
+          secondAnimation: compensatePopupTransitionDelay(config.secondAnimation, compensationMs)
+        } : {})
+      };
+    }
+
+    function getPopupTransitionDelays(config) {
+      if (!config || !config.type || config.type === "None") return [];
+      const delays = [Math.max(0, Number(config.delay) || 0) * 1000];
+      if (config.secondAnimation) delays.push(...getPopupTransitionDelays(config.secondAnimation));
+      return delays;
+    }
+
+    function playPopupBoxTransitionStage(element, config, board, rect, isFinalStage) {
+      if (!element || !config || !config.type || config.type === "None" || typeof element.animate !== "function") return Promise.resolve();
+      const duration = Math.max(0, Number(config.duration) || 0) * 1000;
+      const delay = Math.max(0, Number(config.delay) || 0) * 1000;
+      const origin = { ...config, _originX: Number(config._originX), _originY: Number(config._originY) };
+      const hasWipe = config.type === "Wipe" || (config._parallelStages || []).some(stage => stage.type === "Wipe");
+      const clipTarget = hasWipe ? element.querySelector(".popup-custom-surface") : null;
+      const steps = duration > 0 ? 30 : 1;
+      const frames = [];
+      const clipFrames = [];
+      for (let i = 0; i <= steps; i += 1) {
+        const time = i / steps;
+        const eased = popupEase(config.easing, time);
+        const progress = config.reverse ? 1 - eased : eased;
+        const motion = computePopupTransitionMotion(board, progress, origin, rect);
+        if (clipTarget) {
+          clipFrames.push({ clipPath: motion.clipPath, offset: time });
+          delete motion.clipPath;
+        }
+        const frame = { ...motion, offset: time };
+        delete frame._motion;
+        frames.push(frame);
+      }
+      const animations = [element.animate(frames, { duration, delay, fill: "both", easing: "linear" })];
+      if (clipTarget) animations.push(clipTarget.animate(clipFrames, { duration, delay, fill: "both", easing: "linear" }));
+      return new Promise(resolve => setTimeout(resolve, delay + duration)).then(() => {
+        const motionPathStages = config._parallelStages
+          ? config._parallelStages.filter(stage => stage.type === "MotionPath")
+          : config.type === "MotionPath" ? [config] : [];
+        if (motionPathStages.length && rect.width && rect.height) {
+          const offset = motionPathStages.reduce((total, stage) => {
+            const stageConfig = {
+              ...stage,
+              _originX: config._originX,
+              _originY: config._originY
+            };
+            const endProgress = stage.reverse ? 0 : 1;
+            const stageMotion = computePopupTransitionMotion(board, endProgress, stageConfig, rect)._motion;
+            total.tx += stageMotion.tx;
+            total.ty += stageMotion.ty;
+            return total;
+          }, { tx: 0, ty: 0 });
+          const style = window.getComputedStyle(element);
+          const left = Number.parseFloat(style.left) || 0;
+          const top = Number.parseFloat(style.top) || 0;
+          element.style.left = `${((left + offset.tx) / rect.width) * 100}%`;
+          element.style.top = `${((top + offset.ty) / rect.height) * 100}%`;
+        }
+        animations.forEach(animation => {
+          try { animation.finish(); } catch (error) {}
+        });
+        const finalFrame = frames[frames.length - 1];
+        element.style.opacity = String(finalFrame.opacity);
+        element.style.transformOrigin = finalFrame.transformOrigin || "";
+        if (config.type === "MotionPath") {
+          const finalMotion = computePopupTransitionMotion(board, config.reverse ? 0 : 1, origin, rect)._motion;
+          element.style.transform = `translate(0px, 0px) scale(${finalMotion.sx}, ${finalMotion.sy}) rotate(${finalMotion.rotate}deg)`;
+        } else {
+          element.style.transform = finalFrame.transform;
+        }
+        if (clipTarget && clipFrames.length) {
+          clipTarget.style.clipPath = clipFrames[clipFrames.length - 1].clipPath;
+        } else if (finalFrame.clipPath) {
+          element.style.clipPath = finalFrame.clipPath;
+        }
+        animations.forEach(animation => {
+          if (board !== "out" || !isFinalStage || config.type === "MotionPath") animation.cancel();
+        });
+      });
+    }
+
+    function getPopupMotionPathElementOrigin(element, boxes, rect) {
+      const box = boxes[Number(element.dataset.boxIndex)];
+      const centerOf = item => {
+        const bounds = item.getBoundingClientRect();
+        return {
+          x: ((bounds.left + bounds.width / 2 - rect.left) / rect.width) * 100,
+          y: ((bounds.top + bounds.height / 2 - rect.top) / rect.height) * 100
+        };
+      };
+      if (!box || !box.groupId) return centerOf(element);
+      const members = boxes.map((member, index) => ({
+        member,
+        element: document.querySelector(`.popup-custom-box[data-box-index="${index}"]`)
+      })).filter(item => item.member && item.member.groupId === box.groupId && item.element);
+      if (members.length < 2) return centerOf(element);
+      const bounds = members.map(item => item.element.getBoundingClientRect());
+      const left = Math.min(...bounds.map(item => item.left));
+      const top = Math.min(...bounds.map(item => item.top));
+      const right = Math.max(...bounds.map(item => item.right));
+      const bottom = Math.max(...bounds.map(item => item.bottom));
+      return {
+        x: ((left + (right - left) / 2 - rect.left) / rect.width) * 100,
+        y: ((top + (bottom - top) / 2 - rect.top) / rect.height) * 100
+      };
+    }
+
+    function playPopupBoxTransition(element, config, board, rect, boxes, delayCompensationMs = 0) {
+      const adjustedConfig = compensatePopupTransitionDelay(config, delayCompensationMs);
+      if (!element || !adjustedConfig || !adjustedConfig.secondAnimation) return playPopupBoxTransitionStage(element, adjustedConfig, board, rect, true);
+      const stages = [adjustedConfig, adjustedConfig.secondAnimation];
+      const durationMs = Math.max(...stages.map(stage =>
+        (Math.max(0, Number(stage.delay) || 0) + Math.max(0, Number(stage.duration) || 0)) * 1000
+      ));
+      const parallelConfig = {
+        ...adjustedConfig,
+        type: stages.some(stage => stage.type === "MotionPath") ? "MotionPath" : "Parallel",
+        delay: 0,
+        duration: durationMs / 1000,
+        easing: "Linear",
+        reverse: false,
+        _parallelStages: stages,
+        _parallelDurationMs: durationMs
+      };
+      return playPopupBoxTransitionStage(element, parallelConfig, board, rect, true);
+    }
+
+    function getPopupMotionPathOrigin(box, boxes) {
+      const boxCenter = {
+        x: Number(box.x) + Number(box.width) / 2,
+        y: Number(box.y) + Number(box.height) / 2
+      };
+      if (!box.groupId) return boxCenter;
+
+      const members = boxes.filter(member => member && member.groupId === box.groupId);
+      if (members.length < 2) return boxCenter;
+
+      let left = Infinity;
+      let top = Infinity;
+      let right = -Infinity;
+      let bottom = -Infinity;
+      for (const member of members) {
+        left = Math.min(left, Number(member.x));
+        top = Math.min(top, Number(member.y));
+        right = Math.max(right, Number(member.x) + Number(member.width));
+        bottom = Math.max(bottom, Number(member.y) + Number(member.height));
+      }
+      if (!(right > left) || !(bottom > top)) return boxCenter;
+      return { x: left + (right - left) / 2, y: top + (bottom - top) / 2 };
+    }
+
+    async function playPopupCustomizationAnimations(config, areaMarqueePromise, sequenceStartTime) {
+      const layer = document.getElementById("popupCustomLayer");
+      if (!layer || !config) return;
+      const rect = layer.getBoundingClientRect();
+      const boxes = Array.isArray(config.boxes) ? config.boxes : [];
+      const elements = Array.from(layer.querySelectorAll(".popup-custom-box"));
+      const playPhase = (phase, delayCompensationMs = 0) => Promise.all(elements.map(element => {
+        const index = Number(element.dataset.boxIndex);
+        const box = boxes[index];
+        if (!box) return Promise.resolve();
+        let transition = phase === "in" ? box.transitionIn : box.transitionOut;
+        if (transition && (transition.type === "MotionPath" || transition.secondAnimation && transition.secondAnimation.type === "MotionPath")) {
+          const origin = getPopupMotionPathOrigin(box, boxes);
+          transition = {
+            ...transition,
+            _originX: origin.x,
+            _originY: origin.y
+          };
+        }
+        return playPopupBoxTransition(element, transition, phase, rect, boxes, delayCompensationMs);
+      }));
+      await Promise.all([playPhase("in"), areaMarqueePromise || Promise.resolve()]);
+      const elapsedMs = Number.isFinite(sequenceStartTime) ? Math.max(0, performance.now() - sequenceStartTime) : 0;
+      const outDelays = boxes.flatMap(box => getPopupTransitionDelays(box && box.transitionOut));
+      const earliestOutDelayMs = outDelays.length ? Math.min(...outDelays) : 0;
+      // Shift the exit timeline uniformly so earlier waits don't collapse its stagger.
+      const delayCompensationMs = Math.min(elapsedMs, earliestOutDelayMs);
+      await playPhase("out", delayCompensationMs);
+    }
+
+    function finishPopupAlert(overlay, overlayImage) {
+      overlay.style.display = "none";
+      const layer = document.getElementById("popupCustomLayer");
+      if (layer && typeof layer.getAnimations === "function") {
+        layer.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+      }
+      overlayImage.style.opacity = "1";
+      try { overlayImage.src = ""; } catch (error) {}
+      setTimeout(() => {
+        if (alertQueue.length) {
+          triggerWarning(alertQueue.shift());
+        } else {
+          isOverlayActive = false;
+        }
+      }, 200);
+    }
+
+    function triggerWarning(opts) {
+      const {
+        audioSrc, eventText, areaDesc,
+        type, pds, emergency, destructive,
+        flashFloodConsiderable, flashFloodCatastrophic
+      } = opts;
+
+      const overlay            = document.getElementById("overlay");
+      let overlayImage         = document.getElementById("overlayImage");
+      const overlayAudio       = document.getElementById("overlayAudio");
+      const testWarningContainer = document.getElementById("testWarningContainer");
+      const testCountyContainer  = document.getElementById("testCountyContainer");
+
+      testWarningContainer.removeAttribute("style");
+      testCountyContainer.removeAttribute("style");
+      testWarningContainer.className = "text-container";
+      testCountyContainer.className  = "text-container";
+
+      // apply styling per type
+      if (type === "severe") {
+        testWarningContainer.classList.add("severe");
+        testCountyContainer.classList.add("severe");
+        if (destructive) {
+          testWarningContainer.classList.add("destructiveSevere");
+          testCountyContainer.classList.add("destructiveSevere");
+        } else if (opts.considerable) {
+          testWarningContainer.classList.add("considerableSevere");
+          testCountyContainer.classList.add("considerableSevere");
+        }
+      }
+      else if (type === "tornado") {
+        testWarningContainer.classList.add("tornado");
+        testCountyContainer.classList.add("tornado");
+        if (emergency) {
+          testWarningContainer.classList.add("tornadoEmergency");
+          testCountyContainer.classList.add("tornadoEmergency");
+        } else if (pds) {
+          testWarningContainer.classList.add("pdsTornado");
+          testCountyContainer.classList.add("pdsTornado");
+        }
+      }
+      else if (type === "flashFlood") {
+        testWarningContainer.classList.add("flashFlood");
+        testCountyContainer.classList.add("flashFlood");
+        if (flashFloodCatastrophic) {
+          testWarningContainer.classList.add("catastrophicFlashFlood");
+          testCountyContainer.classList.add("catastrophicFlashFlood");
+        } else if (flashFloodConsiderable) {
+          testWarningContainer.classList.add("considerableFlashFlood");
+          testCountyContainer.classList.add("considerableFlashFlood");
+        }
+      }
+      // Special Weather Statement styling
+      if (opts.type === "specialStatement") {
+        testWarningContainer.classList.add("specialStatement");
+        testCountyContainer.classList.add("specialStatement");
+      }
+      // Severe Thunderstorm Watch styling
+      if (opts.type === "severeWatch") {
+        testWarningContainer.classList.add("severeWatch");
+        testCountyContainer.classList.add("severeWatch");
+      }
+      // Tornado Watch styling
+      if (opts.type === "tornadoWatch") {
+        testWarningContainer.classList.add("tornadoWatch");
+        testCountyContainer.classList.add("tornadoWatch");
+      }
+      // Winter Storm Warning styling
+      if (opts.type === "winterStorm") {
+        testWarningContainer.classList.add("winterStorm");
+        testCountyContainer.classList.add("winterStorm");
+      }
+      // Blizzard Warning styling
+      if (opts.type === "blizzard") {
+        testWarningContainer.classList.add("blizzard");
+        testCountyContainer.classList.add("blizzard");
+      }
+
+      // Tropical Storm styling
+      if (opts.type === "tropicalStorm") {
+        testWarningContainer.classList.add("tropicalStorm");
+        testCountyContainer.classList.add("tropicalStorm");
+      }
+
+      // Hurricane styling
+      if (opts.type === "hurricane") {
+        testWarningContainer.classList.add("hurricane");
+        testCountyContainer.classList.add("hurricane");
+      }
+
+      // Snow Squall styling
+      if (opts.type === "snowSquall") {
+        testWarningContainer.classList.add("snowSquall");
+        testCountyContainer.classList.add("snowSquall");
+      }
+
+      // Winter Storm Watch styling
+      if (opts.type === "winterWatch") {
+        testWarningContainer.classList.add("winterWatch");
+        testCountyContainer.classList.add("winterWatch");
+      }
+
+      const popupCustomizationType = getPopupCustomizationType(opts);
+      const popupCustomization = popupCustomizationType && window.POPUP_ALERT_CUSTOMIZATIONS ?
+        window.POPUP_ALERT_CUSTOMIZATIONS[popupCustomizationType] : null;
+      const isUpgradedText = /\bupgraded\b/i.test(eventText);
+      const textVariant = isUpgradedText ? "upgraded" : "normal";
+      const configuredAlertText = popupCustomization && popupCustomization.textOverrides &&
+        popupCustomization.textOverrides[textVariant];
+      const displayedEventText = typeof configuredAlertText === "string" && configuredAlertText.trim() ?
+        configuredAlertText.trim() : eventText;
+      renderPopupCustomization(popupCustomizationType, eventText, areaDesc, opts.concerning || "", {
+        watchProbability: opts.watchProbability,
+        mostProbablePeakTornadoIntensity: opts.mostProbablePeakTornadoIntensity,
+        mostProbablePeakWindGust: opts.mostProbablePeakWindGust,
+        alertFields: opts.alertFields || {}
+      });
+
+      const hasCssCustomization = !!(popupCustomization && (
+        (Array.isArray(popupCustomization.boxes) && popupCustomization.boxes.length) ||
+        (popupCustomization.media && popupCustomization.media.src)
+      ));
+
+      if (!hasCssCustomization) {
+        finishPopupAlert(overlay, overlayImage);
+        return;
+      }
+
+      overlayImage.style.display = "none";
+      overlayImage.removeAttribute("src");
+
+      const selectedAudioSrc = popupCustomization && popupCustomization.audio &&
+        typeof popupCustomization.audio.src === "string" && popupCustomization.audio.src ?
+        popupCustomization.audio.src : audioSrc;
+      if (selectedAudioSrc) {
+        overlayAudio.src = selectedAudioSrc;
+        overlayAudio.play().catch(() => {});
+      } else {
+        overlayAudio.pause();
+        overlayAudio.src = "";
+      }
+
+      testWarningContainer.textContent = displayedEventText;
+      testCountyContainer.textContent = areaDesc;
+      overlay.style.display = "flex";
+      const animationSequenceStartTime = performance.now();
+      const areaMarqueePromise = Promise.all([
+        startAlertAreaMarquee(testCountyContainer),
+        startPopupAreaMarquees(document.getElementById("popupCustomLayer"))
+      ]);
+
+      playPopupCustomizationAnimations(popupCustomization, areaMarqueePromise, animationSequenceStartTime)
+        .catch(error => console.warn("Popup transition animation failed.", error))
+        .finally(() => finishPopupAlert(overlay, overlayImage));
+    }
+
+    // Helper: Extract damage threats and detection from new warnverlay API's "alertinfo"
+    function extractThreatsFromWarnverlay(alertInfo) {
+      const ai = alertInfo || {};
+      const tornadoDetection = ai.TORNADO || null;
+      const tornadoDetectionRadarIndicated = tornadoDetection === "RADAR INDICATED";
+      const tornadoDetectionObserved = tornadoDetection === "OBSERVED";
+      const tornadoDamageThreatCatastrophic = ai.TORNADO_DAMAGE_THREAT === "CATASTROPHIC";
+      const tornadoDamageThreatConsiderable = ai.TORNADO_DAMAGE_THREAT === "CONSIDERABLE";
+      const thunderstormDamageThreatConsiderable = ai.THUNDERSTORM_DAMAGE_THREAT === "CONSIDERABLE";
+      const thunderstormDamageThreatDestructive = ai.THUNDERSTORM_DAMAGE_THREAT === "DESTRUCTIVE";
+      let flashFloodDamageThreat = null;
+      if (ai.FLASH_FLOOD_DAMAGE_THREAT === "CATASTROPHIC" || ai.FLASH_FLOOD_DAMAGE_THREAT === "CONSIDERABLE") {
+        flashFloodDamageThreat = ai.FLASH_FLOOD_DAMAGE_THREAT;
+      }
+      return {
+        tornadoDetectionRadarIndicated,
+        tornadoDetectionObserved,
+        tornadoDetection,
+        tornadoDamageThreatCatastrophic,
+        tornadoDamageThreatConsiderable,
+        thunderstormDamageThreatConsiderable,
+        thunderstormDamageThreatDestructive,
+        flashFloodDamageThreat
+      };
+    }
+
+    // Helper: Extract damage threats and detection from Atom API parameters (fallback)
+    function extractThreatsFromAtom(entry) {
+      const parameters = Array.from(entry.getElementsByTagName("cap:parameter"));
+      let tornadoDetection = null,
+          tornadoDamageThreatCatastrophic = false,
+          tornadoDamageThreatConsiderable = false,
+          thunderstormDamageThreatConsiderable = false,
+          thunderstormDamageThreatDestructive = false,
+          flashFloodDamageThreat = null;
+
+      parameters.forEach(p => {
+        const name = p.querySelector("valueName")?.textContent || "";
+        const val  = p.querySelector("value")?.textContent || "";
+        if (name === "tornadoDetection") {
+          tornadoDetection = val;
+        }
+        if (name === "tornadoDamageThreat") {
+          if (val === "CATASTROPHIC") tornadoDamageThreatCatastrophic = true;
+          if (val === "CONSIDERABLE") tornadoDamageThreatConsiderable = true;
+        }
+        if (name === "thunderstormDamageThreat") {
+          if (val === "CONSIDERABLE") thunderstormDamageThreatConsiderable = true;
+          if (val === "DESTRUCTIVE") thunderstormDamageThreatDestructive = true;
+        }
+        if (name === "flashFloodDamageThreat") {
+          if (val === "CATASTROPHIC" || val === "CONSIDERABLE") flashFloodDamageThreat = val;
+        }
+      });
+
+      return {
+        tornadoDetectionRadarIndicated: tornadoDetection === "RADAR INDICATED",
+        tornadoDetectionObserved: tornadoDetection === "OBSERVED",
+        tornadoDetection,
+        tornadoDamageThreatCatastrophic,
+        tornadoDamageThreatConsiderable,
+        thunderstormDamageThreatConsiderable,
+        thunderstormDamageThreatDestructive,
+        flashFloodDamageThreat
+      };
+    }
+
+    // Fetch alerts from new warnverlay API
+      // WebSocket logic for warnverlay API
+      let wsAlerts = [];
+      let wsActive = false;
+      let wsError = false;
+      let wsSocket = null;
+      let wsReconnectTimer = null;
+      const WARNVERLAY_WS_URL = "wss://warnverlaynwwsalerts.dpdns.org/ws";
+
+      function scheduleWebSocketReconnect(delay = 5000) {
+        if (wsReconnectTimer) return;
+        wsReconnectTimer = setTimeout(() => {
+          wsReconnectTimer = null;
+          startWarnverlayWebSocket();
+        }, delay);
+      }
+
+      function parseWarnverlayPayload(rawData) {
+        let data;
+        try {
+          data = JSON.parse(String(rawData));
+        } catch (e) {
+          return null;
+        }
+
+        let arr = null;
+        if (Array.isArray(data)) arr = data;
+        else if (data && Array.isArray(data.alerts)) arr = data.alerts;
+        else if (data && Array.isArray(data.data)) arr = data.data;
+        else if (data && Array.isArray(data.features)) arr = data.features.map(f => f.properties ? Object.assign({}, f.properties, { alertinfo: f.properties.alertinfo || f.alertinfo }) : f);
+        if (!arr) return null;
+
+        return arr.map(alert => {
+          const props = alert.properties || {};
+          const sender = alert.sender || props.sender || "";
+          const officeId = alert.officeId || props.officeId || parseOfficeIdFromSender(sender);
+          return {
+            id: alert.id || props.common_id || undefined,
+            event: alert.event || alert.event_description || "",
+            areaDesc: alert.areaDesc || alert.areaDescText || alert.area || "",
+            expires: alert.expires || "",
+            description: alert.description || "",
+            officeId,
+            officeName: alert.officeName || props.officeName || nwsofficeMap[officeId] || undefined,
+            threats: extractThreatsFromWarnverlay(alert.alertinfo || alert.alertInfo || props.alertinfo || props.alertInfo || {}),
+            fields: extractAlertFieldsFromWarnverlay(alert.alertinfo || alert.alertInfo || props.alertinfo || props.alertInfo || {}),
+            action: (props.vtec && props.vtec.action) || props.action ||
+              (alert.vtec && alert.vtec.action) || alert.action || ""
+          };
+        });
+      }
+
+      function startWarnverlayWebSocket() {
+        if (wsSocket && (wsSocket.readyState === WebSocket.OPEN || wsSocket.readyState === WebSocket.CONNECTING)) {
+          return;
+        }
+
+        try {
+          wsSocket = new WebSocket(WARNVERLAY_WS_URL);
+          wsActive = false;
+          wsError = false;
+
+          wsSocket.addEventListener('open', () => {
+            wsActive = true;
+            wsError = false;
+          });
+
+          wsSocket.addEventListener('message', event => {
+            const parsed = parseWarnverlayPayload(event.data);
+            if (!parsed) return;
+            wsAlerts = parsed;
+            try { pollAlerts(); } catch (e) {}
+          });
+
+          wsSocket.addEventListener('close', () => {
+            wsActive = false;
+            scheduleWebSocketReconnect();
+          });
+
+          wsSocket.addEventListener('error', () => {
+            wsActive = false;
+            wsError = true;
+            if (wsSocket) {
+              wsSocket.close();
+            }
+          });
+        } catch (e) {
+          wsActive = false;
+          wsError = true;
+          scheduleWebSocketReconnect();
+        }
+      }
+
+      // Start WebSocket on load
+      startWarnverlayWebSocket();
+
+      async function fetchWarnverlayAlerts() {
+        // If WebSocket is working and has data, use it
+        if (wsActive && wsAlerts.length) {
+          return wsAlerts;
+        }
+        // If WebSocket failed, fallback to fetch
+        try {
+          const resp = await fetch("https://warnverlaynwwsalerts.dpdns.org/alerts");
+          if (!resp.ok) return null;
+          const data = await resp.json();
+          let arr = null;
+          if (Array.isArray(data)) arr = data;
+          else if (data && Array.isArray(data.alerts)) arr = data.alerts;
+          else if (data && Array.isArray(data.data)) arr = data.data;
+          else if (data && Array.isArray(data.features)) arr = data.features.map(f => f.properties ? Object.assign({}, f.properties, { alertinfo: f.properties.alertinfo || f.alertinfo }) : f);
+          if (!arr) return null;
+          return arr.map(alert => {
+            const props = alert.properties || {};
+            const sender = alert.sender || props.sender || "";
+            const officeId = alert.officeId || props.officeId || parseOfficeIdFromSender(sender);
+            return {
+              id: alert.id || props.common_id || undefined,
+              event: alert.event || alert.event_description || "",
+              areaDesc: alert.areaDesc || alert.areaDescText || alert.area || "",
+              expires: alert.expires || "",
+              description: alert.description || "",
+              officeId,
+              officeName: alert.officeName || props.officeName || nwsofficeMap[officeId] || undefined,
+              threats: extractThreatsFromWarnverlay(alert.alertinfo || alert.alertInfo || props.alertinfo || props.alertInfo || {}),
+              fields: extractAlertFieldsFromWarnverlay(alert.alertinfo || alert.alertInfo || props.alertinfo || props.alertInfo || {}),
+              action: (props.vtec && props.vtec.action) || props.action ||
+                (alert.vtec && alert.vtec.action) || alert.action || ""
+            };
+          });
+        } catch (e) {
+          return null;
+        }
+      }
+
+      async function fetchMesoscaleDiscussions() {
+        try {
+          const response = await fetch("https://warnverlaynwwsalerts.dpdns.org/mesoscalediscussions");
+          if (!response.ok) return [];
+          const data = await response.json();
+          const discussions = Array.isArray(data) ? data :
+            data && (Array.isArray(data.discussions) ? data.discussions : Array.isArray(data.data) ? data.data : []);
+          return discussions.flatMap(discussion => {
+            const discussionType = String(discussion.type || discussion.TYPE || "").toUpperCase();
+            if (discussionType !== "MCD" && discussionType !== "MPD") return [];
+            return [{
+              id: discussion.id || discussion.sent || undefined,
+              discussionType,
+              event: discussionType === "MCD" ? "Mesoscale Discussion" : "Mesoscale Percipitation Discussion",
+              areaDesc: discussion.AREAS_AFFECTED || discussion.AREA_AFFECTED || "",
+              concerning: discussion.CONCERNING || discussion.CONSERNING || "",
+              watchProbability: discussion.WATCH_PROBABILITY ?? "",
+              mostProbablePeakTornadoIntensity: discussion.MOST_PROBABLE_PEAK_TORNADO_INTENSITY ?? "",
+              mostProbablePeakWindGust: discussion.MOST_PROBABLE_PEAK_WIND_GUST ?? "",
+              expires: discussion.expires || discussion.endTime || "",
+              threats: {}
+            }];
+          });
+        } catch (error) {
+          return [];
+        }
+      }
+
+    // Fetch alerts from NWS API (weather.gov only)
+    async function fetchNWSAlerts() {
+      try {
+        const resp = await fetch("https://api.weather.gov/alerts/active.atom");
+        const str = await resp.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(str, "application/xml");
+        const entries = Array.from(xml.getElementsByTagName("entry"));
+        return entries.map(entry => {
+          const eventEl = entry.querySelector("cap\\:event") || entry.querySelector("event");
+          const areaEl  = entry.querySelector("cap\\:areaDesc") || entry.querySelector("areaDesc");
+          const descEl  = entry.querySelector("summary") || entry.querySelector("description");
+          const idEl    = entry.querySelector("cap\\:identifier") || entry.querySelector("id");
+          const rawId = idEl ? (idEl.textContent || "").trim() : "";
+          const officeId = getOfficeIdFromWMOIdentifier(rawId);
+          return {
+            id: rawId || undefined,
+            event: eventEl ? eventEl.textContent.trim() : "",
+            areaDesc: areaEl ? areaEl.textContent.trim() : "",
+            expires: entry.querySelector("cap\\:expires")?.textContent || "",
+            description: descEl ? descEl.textContent : "",
+            officeId,
+            officeName: nwsofficeMap[officeId] || undefined,
+            threats: extractThreatsFromAtom(entry),
+            fields: extractAlertFieldsFromAtom(entry)
+          };
+        });
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Unified fetch function: try warnverlay, fallback to Atom
+    async function fetchWeatherAlerts() {
+      let alerts = await fetchWarnverlayAlerts();
+      // If warnverlay is down/unreachable we return `null` from fetchWarnverlayAlerts
+      // and should fall back to the NWS Atom feed. If warnverlay is up but
+      // returns an empty array, treat that as "no alerts" (do not fallback).
+      if (alerts === null) {
+        alerts = await fetchNWSAlerts();
+      }
+      const discussions = await fetchMesoscaleDiscussions();
+      return [...alerts, ...discussions];
+    }
+
+    // Main pollAlerts logic: use unified fetchWeatherAlerts
+    async function pollAlerts() {
+      if (pollInProgress) {
+        pollRequested = true;
+        return;
+      }
+      pollInProgress = true;
+      pollRequested = false;
+      let scheduled = false;
+      try {
+        let alerts = await fetchWeatherAlerts();
+        if (Array.isArray(alerts) && alerts.length) {
+          const filtered = applyOfficeFilters(alerts);
+          registerOfficesFromAlerts(filtered);
+          alerts = filtered;
+        }
+        if (!alerts || !alerts.length) {
+          // no alerts yet – poll again sooner
+          setTimeout(() => { pollInProgress = false; pollAlerts(); }, 1800);
+          scheduled = true;
+          return;
+        }
+
+        const currentFeedKeys    = new Set();
+        const processedThisCycle = new Set();
+
+        alerts.forEach(alert => {
+        function enqueueAlert(options) {
+          return enqueueAlertRaw({ ...options, alertFields: alert.fields || {} });
+        }
+
+        const eventTextRaw = alert.event || "";
+        const areaDesc     = alert.areaDesc || "";
+        const expireDate   = alert.expires || "";
+        const threats      = alert.threats;
+        const action       = String(alert.action || "").trim().toUpperCase();
+
+        // Keep the full county list together; the display scrolls when it overflows.
+        const groups = [formatAreaDesc(areaDesc)].filter(group => passesStateFilter(group));
+        if (!groups.length) return;
+
+        // Helper for upgrade logic: returns true if a new threat/detection was added
+        function isThreatUpgrade(last, current, type) {
+          // For tornado: EMERGENCY > PDS > OBSERVED > DEFAULT
+          // For severe: DESTRUCTIVE > CONSIDERABLE > DEFAULT
+          // For flash flood: CATASTROPHIC > CONSIDERABLE > DEFAULT
+          const tornadoOrder = ["DEFAULT", "OBSERVED", "PDS", "EMERGENCY"];
+          const severeOrder = ["DEFAULT", "CONSIDERABLE", "DESTRUCTIVE"];
+          const ffOrder = ["DEFAULT", "CONSIDERABLE", "CATASTROPHIC"];
+          let arr = [];
+          if (type === "tornado") arr = tornadoOrder;
+          if (type === "severe") arr = severeOrder;
+          if (type === "flashFlood") arr = ffOrder;
+          return arr.indexOf(current) > arr.indexOf(last);
+        }
+
+        if (alert.discussionType === "MCD" || alert.discussionType === "MPD") {
+          const isPrecipitationDiscussion = alert.discussionType === "MPD";
+          const discussionType = isPrecipitationDiscussion ?
+            "mesoscalePrecipitationDiscussion" : "mesoscaleDiscussion";
+          const issuedMap = isPrecipitationDiscussion ?
+            issuedMesoscalePrecipitationDiscussionAlerts : issuedMesoscaleDiscussionAlerts;
+          const key = generateAlertKey(alert.event, areaDesc, alert.id);
+          currentFeedKeys.add(key);
+          if (!issuedMap[key]) {
+            if (initialLoad) {
+              issuedMap[key] = { state: "DEFAULT", queued: false, lastDisplayed: "DEFAULT" };
+            } else {
+              enqueueAlert({
+                alertKey: key,
+                eventText: alert.event,
+                areaDesc,
+                concerning: alert.concerning || "",
+                watchProbability: alert.watchProbability ?? "",
+                mostProbablePeakTornadoIntensity: alert.mostProbablePeakTornadoIntensity ?? "",
+                mostProbablePeakWindGust: alert.mostProbablePeakWindGust ?? "",
+                type: discussionType,
+                state: "DEFAULT"
+              });
+              issuedMap[key] = { state: "DEFAULT", queued: true, lastDisplayed: "DEFAULT" };
+            }
+          }
+          return;
+        }
+
+        // SEVERE THUNDERSTORM WARNING
+        if (eventTextRaw.toLowerCase().includes("severe thunderstorm warning") &&
+            alertCategoryToggles["severe thunderstorm warning"] !== false) {
+          const baseEventText = "Severe Thunderstorm Warning";
+          let currentThreat = "DEFAULT";
+          if (threats.thunderstormDamageThreatDestructive) currentThreat = "DESTRUCTIVE";
+          else if (threats.thunderstormDamageThreatConsiderable) currentThreat = "CONSIDERABLE";
+
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedSevereAlerts[key];
+            if (initialLoad) {
+              issuedSevereAlerts[key] = {
+                state: currentThreat,
+                queued: false,
+                lastDisplayed: currentThreat
+              };
+            } else if (!record) {
+              // Only overlay immediately if the feed reports this as NEW, but only for non-damage threat alerts
+              if (
+                (currentThreat === "DEFAULT" && action === "NEW") ||
+                currentThreat === "CONSIDERABLE" ||
+                currentThreat === "DESTRUCTIVE"
+              ) {
+                let text, img, aud;
+                if (currentThreat==="DESTRUCTIVE") {
+                  text = "PDS Severe Thunderstorm Warning - Destructive";
+                  img = "PDS SVR.gif";
+                  aud = "PDS SVR.mp3";
+                } else if (currentThreat==="CONSIDERABLE") {
+                  text = "Severe Thunderstorm Warning – Considerable";
+                  img = "SVR - Considerable.gif";
+                  aud = "SVR.mp3";
+                } else {
+                  text = "Severe Thunderstorm Warning";
+                  img = "SVR.gif";
+                  aud = "SVR.mp3";
+                }
+
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: img,
+                  audioSrc: aud,
+                  eventText: text,
+                  areaDesc: group,
+                  type: "severe",
+                  state: currentThreat,
+                  destructive: currentThreat==="DESTRUCTIVE",
+                  considerable: currentThreat==="CONSIDERABLE"
+                });
+                issuedSevereAlerts[key] = {
+                  state: currentThreat,
+                  queued: true,
+                  lastDisplayed: currentThreat
+                };
+              } else {
+                // Register silently so future upgrades are detected
+                issuedSevereAlerts[key] = {
+                  state: currentThreat,
+                  queued: false,
+                  lastDisplayed: currentThreat
+                };
+              }
+            } else if (record.lastDisplayed !== currentThreat) {
+              // Overlay if a new threat was added (upgrade)
+              if (isThreatUpgrade(record.lastDisplayed, currentThreat, "severe")) {
+                let text, img, aud;
+                if (currentThreat==="DESTRUCTIVE") {
+                  text = "PDS Severe Thunderstorm Warning - Destructive Upgraded";
+                  img = "PDS SVR.gif";
+                  aud = "PDS SVR.mp3";
+                } else if (currentThreat==="CONSIDERABLE") {
+                  text = "Severe Thunderstorm Warning – Considerable Upgraded";
+                  img = "SVR - Considerable.gif";
+                  aud = "SVR.mp3";
+                } else {
+                  text = "Severe Thunderstorm Warning Upgraded";
+                  img = "SVR.gif";
+                  aud = "SVR.mp3";
+                }
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: img,
+                  audioSrc: aud,
+                  eventText: text,
+                  areaDesc: group,
+                  type: "severe",
+                  state: currentThreat,
+                  destructive: currentThreat==="DESTRUCTIVE",
+                  considerable: currentThreat==="CONSIDERABLE",
+                  force: true
+                });
+                record.lastDisplayed = currentThreat;
+              } else {
+                // No overlay: just update record so we don't repeatedly trigger
+                record.lastDisplayed = currentThreat;
+              }
+            }
+          });
+        }
+
+        // TORNADO WARNING
+        else if (eventTextRaw.toLowerCase().includes("tornado warning") &&
+            alertCategoryToggles["tornado warning"] !== false) {
+          const baseEventText = "Tornado Warning";
+          let currentState = "DEFAULT";
+          if (threats.tornadoDetection === "OBSERVED" && threats.tornadoDamageThreatCatastrophic) {
+            currentState = "EMERGENCY";
+          } else if (
+            (threats.tornadoDetection === "OBSERVED" || threats.tornadoDetection === "RADAR INDICATED") &&
+            threats.tornadoDamageThreatConsiderable
+          ) {
+            currentState = "PDS";
+          } else if (threats.tornadoDetection === "OBSERVED") {
+            currentState = "OBSERVED";
+          }
+
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedTornadoAlerts[key];
+            if (initialLoad) {
+              issuedTornadoAlerts[key] = {
+                state: currentState,
+                queued: false,
+                lastDisplayed: currentState
+              };
+            } else if (!record) {
+              // Only overlay immediately if action === "NEW"
+              if (action === "NEW") {
+                let text, img, aud, pds=false, em=false;
+                if (currentState==="EMERGENCY") {
+                  em = true; text = "Tornado Emergency"; img = "TORE.gif"; aud = "TORE.mp3";
+                } else if (currentState==="PDS") {
+                  pds = true; text = "PDS Tornado Warning"; img = "PDS TOR.gif"; aud = "PDS TOR.mp3";
+                } else if (currentState==="OBSERVED") {
+                  text = "Observed Tornado Warning"; img = "TOR.gif"; aud = "TOR.mp3";
+                } else {
+                  text = "Tornado Warning"; img = "TOR.gif"; aud = "TOR.mp3";
+                }
+
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: img,
+                  audioSrc: aud,
+                  eventText: text,
+                  areaDesc: group,
+                  type: "tornado",
+                  state: currentState,
+                  pds,
+                  emergency: em
+                });
+                issuedTornadoAlerts[key] = {
+                  state: currentState,
+                  queued: true,
+                  lastDisplayed: currentState
+                };
+              } else {
+                // Register silently so future upgrades/detections are handled
+                issuedTornadoAlerts[key] = {
+                  state: currentState,
+                  queued: false,
+                  lastDisplayed: currentState
+                };
+              }
+            } else if (record.lastDisplayed !== currentState) {
+              // Overlay if a new detection/threat was added (upgrade)
+              if (isThreatUpgrade(record.lastDisplayed, currentState, "tornado")) {
+                let text, img, aud, pds=false, em=false;
+                if (currentState==="EMERGENCY") {
+                  em = true; text = "Tornado Emergency Upgraded"; img = "TORE.gif"; aud = "TORE Upgraded.mp3";
+                } else if (currentState==="PDS") {
+                  pds = true; text = "PDS Tornado Warning Upgraded"; img = "PDS TOR.gif"; aud = "PDS TOR - TOR Upgraded.mp3";
+                } else if (currentState==="OBSERVED") {
+                  text = "Observed Tornado Warning Upgraded"; img = "TOR.gif"; aud = "PDS TOR - TOR Upgraded.mp3";
+                } else {
+                  text = "Tornado Warning Upgraded"; img = "TOR.gif"; aud = "TOR.mp3";
+                }
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: img,
+                  audioSrc: aud,
+                  eventText: text,
+                  areaDesc: group,
+                  type: "tornado",
+                  state: currentState,
+                  pds,
+                  emergency: em,
+                  force: true
+                });
+                record.lastDisplayed = currentState;
+              } else {
+                // No overlay: update record silently
+                record.lastDisplayed = currentState;
+              }
+            }
+          });
+        }
+
+        // FLASH FLOOD WARNING
+        else if (eventTextRaw.toLowerCase().includes("flash flood warning") &&
+            alertCategoryToggles["flash flood warning"] !== false) {
+          const baseEventText = "Flash Flood Warning";
+          let currentFF = "DEFAULT";
+          if (threats.flashFloodDamageThreat === "CATASTROPHIC") currentFF = "CATASTROPHIC";
+          else if (threats.flashFloodDamageThreat === "CONSIDERABLE") currentFF = "CONSIDERABLE";
+
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id); // <--- pass id
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedFlashFloodAlerts[key];
+            // --- Warnverlay API logic with action ---
+            if (initialLoad) {
+              issuedFlashFloodAlerts[key] = {
+                state: currentFF,
+                queued: false,
+                lastDisplayed: currentFF
+              };
+            } else if (!record) {
+              // Only overlay immediately if action === "NEW"
+              if (action === "NEW") {
+                let text, img, aud;
+                if (currentFF==="CATASTROPHIC") {
+                  text = "Flash Flood Emergency"; img = "FFWE.gif"; aud = "FFWE.mp3";
+                } else if (currentFF==="CONSIDERABLE") {
+                  text = "Flash Flood Warning - Considerable"; img = "FFW - Considerable.gif"; aud = "FFW - Considerable.mp3";
+                } else {
+                  text = "Flash Flood Warning"; img = "FFW.gif"; aud = "FFW.mp3";
+                }
+
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: img,
+                  audioSrc: aud,
+                  eventText: text,
+                  areaDesc: group,
+                  type: "flashFlood",
+                  state: currentFF,
+                  flashFloodConsiderable: currentFF==="CONSIDERABLE",
+                  flashFloodCatastrophic: currentFF==="CATASTROPHIC"
+                });
+                issuedFlashFloodAlerts[key] = {
+                  state: currentFF,
+                  queued: true,
+                  lastDisplayed: currentFF
+                };
+              } else {
+                // Register silently so future upgrades are detected
+                issuedFlashFloodAlerts[key] = {
+                  state: currentFF,
+                  queued: false,
+                  lastDisplayed: currentFF
+                };
+              }
+            } else if (record.lastDisplayed !== currentFF) {
+              // Overlay if a new threat was added (upgrade)
+              if (isThreatUpgrade(record.lastDisplayed, currentFF, "flashFlood")) {
+                let text, img, aud;
+                if (currentFF==="CATASTROPHIC") {
+                  text = "Flash Flood Emergency Upgraded"; img = "FFWE.gif"; aud = "FFWE Upgraded.mp3";
+                } else if (currentFF==="CONSIDERABLE") {
+                  text = "Flash Flood Warning - Considerable Upgraded"; img = "FFW - Considerable.gif"; aud = "FFW - Considerable Upgraded.mp3";
+                } else {
+                  text = "Flash Flood Warning Upgraded"; img = "FFW.gif"; aud = "FFW Upgraded.mp3";
+                }
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: img,
+                  audioSrc: aud,
+                  eventText: text,
+                  areaDesc: group,
+                  type: "flashFlood",
+                  state: currentFF,
+                  flashFloodConsiderable: currentFF==="CONSIDERABLE",
+                  flashFloodCatastrophic: currentFF==="CATASTROPHIC",
+                  force: true
+                });
+                record.lastDisplayed = currentFF;
+              } else {
+                // No overlay: update record silently
+                record.lastDisplayed = currentFF;
+              }
+            }
+          });
+        }
+
+        // SPECIAL WEATHER STATEMENT
+        else if (eventTextRaw.toLowerCase().includes("special weather statement")) {
+          const baseEventText = "Special Weather Statement";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, undefined);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedSpecialStatementAlerts[key];
+            if (initialLoad) {
+              issuedSpecialStatementAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: "SWS.gif",
+                  audioSrc: "SWS.mp3",
+                  eventText: "Special Weather Statement",
+                  areaDesc: group,
+                  type: "specialStatement",
+                  state: "DEFAULT"
+                });
+                issuedSpecialStatementAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: true,
+                  lastDisplayed: "DEFAULT"
+                };
+            }
+            // No upgrade logic for SWS
+          });
+        }
+
+        // SEVERE THUNDERSTORM WATCH
+        else if (eventTextRaw.toLowerCase().includes("severe thunderstorm watch")) {
+          const baseEventText = "Severe Thunderstorm Watch";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedSevereWatchAlerts[key];
+            if (initialLoad) {
+              issuedSevereWatchAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                // Only overlay immediately if action === "NEW"
+                // SAFEGUARD: Never overlay for non-NEW actions
+                if (action === "NEW") {
+                  enqueueAlert({
+                    alertKey: key,
+                    imageSrc: "SVA.gif",
+                    audioSrc: "SVA.mp3",
+                    eventText: "Severe Thunderstorm Watch",
+                    areaDesc: group,
+                    type: "severeWatch",
+                    state: "DEFAULT"
+                  });
+                  issuedSevereWatchAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: true,
+                    lastDisplayed: "DEFAULT"
+                  };
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedSevereWatchAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for watches
+          });
+        }
+
+        // TORNADO WATCH
+        else if (eventTextRaw.toLowerCase().includes("tornado watch")) {
+          const baseEventText = "Tornado Watch";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedTornadoWatchAlerts[key];
+            if (initialLoad) {
+              issuedTornadoWatchAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                // Only overlay immediately if action === "NEW"
+                // SAFEGUARD: Never overlay for non-NEW actions
+                if (action === "NEW") {
+                  enqueueAlert({
+                    alertKey: key,
+                    imageSrc: "TOA.gif",
+                    audioSrc: "TOA.mp3",
+                    eventText: "Tornado Watch",
+                    areaDesc: group,
+                    type: "tornadoWatch",
+                    state: "DEFAULT"
+                  });
+                  issuedTornadoWatchAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: true,
+                    lastDisplayed: "DEFAULT"
+                  };
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedTornadoWatchAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for watches
+          });
+        }
+
+        // WINTER STORM WARNING
+        else if (eventTextRaw.toLowerCase().includes("winter storm warning")) {
+          const baseEventText = "Winter Storm Warning";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedWinterStormAlerts[key];
+            if (initialLoad) {
+              issuedWinterStormAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                // Only overlay immediately if action === "NEW" for non-damage threat alerts
+                if (action === "NEW") {
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: "WSW.gif",
+                  audioSrc: "WSW.mp3",
+                  eventText: "Winter Storm Warning",
+                  areaDesc: group,
+                  type: "winterStorm",
+                  state: "DEFAULT"
+                });
+                issuedWinterStormAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: true,
+                  lastDisplayed: "DEFAULT"
+                };
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedWinterStormAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for WSW
+          });
+        }
+
+        // BLIZZARD WARNING
+        else if (eventTextRaw.toLowerCase().includes("blizzard warning")) {
+          const baseEventText = "Blizzard Warning";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedBlizzardAlerts[key];
+            if (initialLoad) {
+              issuedBlizzardAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                // Only overlay immediately if action === "NEW" for non-damage threat alerts
+                if (action === "NEW") {
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: "BZW.gif",
+                  audioSrc: "BZW.mp3",
+                  eventText: "Blizzard Warning",
+                  areaDesc: group,
+                  type: "blizzard",
+                  state: "DEFAULT"
+                });
+                issuedBlizzardAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: true,
+                  lastDisplayed: "DEFAULT"
+                };
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedBlizzardAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for BZW
+          });
+        }
+
+        // TROPICAL STORM WARNING
+        else if (eventTextRaw.toLowerCase().includes("tropical storm warning")) {
+          const baseEventText = "Tropical Storm Warning";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedTropicalStormAlerts[key];
+            if (initialLoad) {
+              issuedTropicalStormAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                // Only overlay immediately if action === "NEW" for non-damage threat alerts
+                if (action === "NEW") {
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: "TSW.gif",      // NEW gif
+                  audioSrc: "TSW.mp3",      // NEW audio
+                  eventText: "Tropical Storm Warning",
+                  areaDesc: group,
+                  type: "tropicalStorm",
+                  state: "DEFAULT"
+                });
+                issuedTropicalStormAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: true,
+                  lastDisplayed: "DEFAULT"
+                };
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedTropicalStormAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for TSW
+          });
+        }
+
+        // HURRICANE WARNING
+        else if (eventTextRaw.toLowerCase().includes("hurricane warning")) {
+          const baseEventText = "Hurricane Warning";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedHurricaneAlerts[key];
+            if (initialLoad) {
+              issuedHurricaneAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                // Only overlay immediately if action === "NEW" for non-damage threat alerts
+                if (action === "NEW") {
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: "HUW.gif",      // requested gif
+                  audioSrc: "HUW.mp3",      // requested audio
+                  eventText: "Hurricane Warning",
+                  areaDesc: group,
+                  type: "hurricane",
+                  state: "DEFAULT"
+                });
+                issuedHurricaneAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: true,
+                  lastDisplayed: "DEFAULT"
+                };
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedHurricaneAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for HUW
+          });
+        }
+
+        // SNOW SQUALL WARNING
+        else if (eventTextRaw.toLowerCase().includes("snow squall warning")) {
+          const baseEventText = "Snow Squall Warning";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedSnowSquallAlerts[key];
+            if (initialLoad) {
+              issuedSnowSquallAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                // Only overlay immediately if action === "NEW" for non-damage threat alerts
+                if (action === "NEW") {
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: "SQW.gif",    // requested gif
+                  audioSrc: "SQW.mp3",    // requested audio
+                  eventText: "Snow Squall Warning",
+                  areaDesc: group,
+                  type: "snowSquall",
+                  state: "DEFAULT"
+                });
+                issuedSnowSquallAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: true,
+                  lastDisplayed: "DEFAULT"
+                };
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedSnowSquallAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for SQW
+          });
+        }
+
+        // WINTER STORM WATCH
+        else if (eventTextRaw.toLowerCase().includes("winter storm watch")) {
+          const baseEventText = "Winter Storm Watch";
+            const seenWinterStormIds = window.seenWinterStormIds || (window.seenWinterStormIds = new Set());
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedWinterWatchAlerts[key];
+            if (initialLoad) {
+              issuedWinterWatchAlerts[key] = {
+                state: "DEFAULT",
+                queued: false,
+                lastDisplayed: "DEFAULT"
+              };
+            } else if (!record) {
+                  // Only overlay if action === "NEW" and id is new
+                  if (action === "NEW" && alert.id && !seenWinterStormIds.has(alert.id)) {
+                enqueueAlert({
+                  alertKey: key,
+                  imageSrc: "WSA.gif",    // requested gif
+                  audioSrc: "WSA.mp3",    // requested audio
+                  eventText: "Winter Storm Watch",
+                  areaDesc: group,
+                  type: "winterWatch",
+                  state: "DEFAULT"
+                });
+                issuedWinterWatchAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: true,
+                  lastDisplayed: "DEFAULT"
+                };
+                  seenWinterStormIds.add(alert.id);
+                } else {
+                  // SAFEGUARD: Never overlay for non-NEW actions
+                  issuedWinterWatchAlerts[key] = {
+                    state: "DEFAULT",
+                    queued: false,
+                    lastDisplayed: "DEFAULT"
+                  };
+                }
+            }
+            // no upgrade logic for WSA
+          });
+        }
+        else if (eventTextRaw.toLowerCase().includes("dust storm warning")) {
+          const baseEventText = "Dust Storm Warning";
+          const currentState = /PARTICULARLY DANGEROUS SITUATION/i.test(alert.description || "") ? "PDS" : "DEFAULT";
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id);
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedDustStormAlerts[key];
+            if (initialLoad) {
+              issuedDustStormAlerts[key] = {
+                state: currentState,
+                queued: false,
+                lastDisplayed: currentState
+              };
+            } else if (!record) {
+              const shouldDisplay = action === "NEW" || currentState === "PDS";
+              if (shouldDisplay) {
+                enqueueAlert({
+                  alertKey: key,
+                  eventText: currentState === "PDS" ? "PDS Dust Storm Warning" : baseEventText,
+                  areaDesc: group,
+                  type: "dustStorm",
+                  pds: currentState === "PDS",
+                  state: currentState
+                });
+              }
+              issuedDustStormAlerts[key] = {
+                state: currentState,
+                queued: shouldDisplay,
+                lastDisplayed: currentState
+              };
+            } else if (record.lastDisplayed !== currentState) {
+              if (record.lastDisplayed !== "PDS" && currentState === "PDS") {
+                enqueueAlert({
+                  alertKey: key,
+                  eventText: "PDS Dust Storm Warning Upgraded",
+                  areaDesc: group,
+                  type: "dustStorm",
+                  pds: true,
+                  state: currentState,
+                  force: true
+                });
+              }
+              record.state = currentState;
+              record.lastDisplayed = currentState;
+            }
+          });
+        }
+        else {
+          const customizationType = Object.keys(window.POPUP_ALERT_CUSTOMIZATIONS || {})
+            .find(type => type.trim().toLowerCase() === eventTextRaw.trim().toLowerCase());
+          if (customizationType) {
+            if (alertCategoryToggles[customizationType.toLowerCase()] === false) return;
+            groups.forEach(group => {
+              const key = generateAlertKey(customizationType, group, alert.id);
+              if (processedThisCycle.has(key)) return;
+              processedThisCycle.add(key);
+              currentFeedKeys.add(key);
+
+              const record = issuedCustomAlerts[key];
+              if (initialLoad) {
+                issuedCustomAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: false,
+                  lastDisplayed: "DEFAULT"
+                };
+              } else if (!record) {
+                const shouldDisplay = action === "NEW";
+                if (shouldDisplay) {
+                  enqueueAlert({
+                    alertKey: key,
+                    eventText: eventTextRaw,
+                    areaDesc: group,
+                    customizationType,
+                    type: "custom",
+                    state: "DEFAULT"
+                  });
+                }
+                issuedCustomAlerts[key] = {
+                  state: "DEFAULT",
+                  queued: shouldDisplay,
+                  lastDisplayed: "DEFAULT"
+                };
+              }
+            });
+          }
+        }
+
+      });
+
+      // cleanup vanished alerts
+      [
+        issuedSevereAlerts,
+        issuedTornadoAlerts,
+        issuedFlashFloodAlerts,
+        issuedSpecialStatementAlerts,
+        issuedSevereWatchAlerts,
+        issuedTornadoWatchAlerts,
+        issuedWinterStormAlerts,
+        issuedBlizzardAlerts,
+        issuedTropicalStormAlerts,
+        issuedHurricaneAlerts,
+        issuedSnowSquallAlerts,
+        issuedWinterWatchAlerts, // NEW: cleanup for WSA
+        issuedMesoscaleDiscussionAlerts,
+        issuedMesoscalePrecipitationDiscussionAlerts,
+        issuedDustStormAlerts,
+        issuedCustomAlerts
+      ].forEach(map => {
+        for (let k in map) {
+          if (!currentFeedKeys.has(k)) delete map[k];
+        }
+      });
+
+        if (!isOverlayActive && alertQueue.length) {
+          processNextAlert();
+        }
+        // Clear the initialLoad flag after first cycle so upgrade logic runs
+        if (initialLoad) {
+          initialLoad = false;
+        }
+      } catch (e) {
+        // ignore individual errors but keep loop running
+      } finally {
+        if (!scheduled) {
+          pollInProgress = false;
+          if (pollRequested) {
+            pollRequested = false;
+            setTimeout(pollAlerts, 0);
+          } else {
+            // poll more frequently now that basic logic is in place
+            setTimeout(pollAlerts, 2000);
+          }
+        }
+      }
+    }
+
+    populateSettingsMenu();
+    loadNWSOffices().then(() => {
+      loadSettings();
+      updateOfficeFilterUI();
+    }).finally(() => {
+      pollAlerts();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warnverlay Full Release</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+    body {
+      font-family: 'Bebas Neue', sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #000000 0%, #4b0000 100%);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 2em;
+      box-sizing: border-box;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3em;
+      color: #ffffff;
+      margin-bottom: 0.5em;
+      text-shadow: 0 0 30px #ff0000, 0 0 30px #660000;
+    }
+    p {
+      font-size: 2.2em;
+      color: #fff;
+      text-shadow: 0 0 40px #ff0000;
+      font-weight: bold;
+    }
+    .resolution-container {
+      margin-top: 1em;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .resolution {
+      display: block;
+      width: 320px;
+      box-sizing: border-box;
+      padding: 30px;
+      margin: 0;
+      background: linear-gradient(135deg, #3f0000 60%, #ff0000 100%);
+      border: 3px solid #ff4d4d;
+      text-decoration: none;
+      color: #fff;
+      font-size: 1.7em;
+      font-family: 'Bebas Neue', sans-serif;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px #660000, 0 0 20px #ff4d4d33;
+      transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      border-radius: 15px;
+    }
+    .resolution:hover {
+      background: linear-gradient(135deg, #000000 60%, #5c0000 100%);
+      color: #fff;
+      box-shadow: 0 0 20px #ff4d4d, 0 0 40px #66000099;
+      border-color: #fff;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      backdrop-filter: blur(4px);
+    }
+    .modal-box {
+      width: min(90%, 580px);
+      padding: 28px;
+      background: rgba(20, 0, 0, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+      text-align: left;
+      color: #f7e4c1;
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+    .modal-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(255, 128, 64, 0.18), transparent 45%);
+      pointer-events: none;
+    }
+    .modal-box h2 {
+      margin-top: 0;
+      margin-bottom: 0.8em;
+      font-size: 2rem;
+      letter-spacing: 1px;
+      color: #ffd36a;
+      text-shadow: 0 0 18px rgba(255, 211, 106, 0.55);
+    }
+    .modal-box p {
+      margin: 0 0 1.4em;
+      line-height: 1.65;
+      color: #f6f0e7;
+      font-size: 2rem;
+      letter-spacing: 0.02em;
+    }
+    .modal-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 26px;
+      background: linear-gradient(135deg, #ff6b6b, #ff2f2f);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-family: 'Bebas Neue', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 14px 30px rgba(255, 77, 77, 0.25);
+      position: relative;
+      z-index: 1;
+    }
+    .modal-close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(255, 77, 77, 0.35);
+    }
+    .modal-close:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(255, 73, 73, 0.35);
+    }
+    </style>
+</head>
+<body>
+  <h1>Welcome to Warnverlay Access 3 Beta</h1>
+  <p>select the Resolution below</p>
+  <div class="resolution-container">
+            <a href="720p - Copy.html" class="resolution">720p</a>
+            <a href="1080p - Copy.html" class="resolution">1080p</a>
+            <a href="1440p - Copy.html" class="resolution">1440p</a>
+            <a href="2160p - Copy.html" class="resolution">2160p (4K)</a>
+            <a href="warnings.html" class="resolution">Popup Alerts</a>
+            <a href="overlayeditor - Copy.html" class="resolution">Background Alerts Creator</a>
+            <a href="popupalertseditor.html" class="resolution">Pop up Alerts Creator</a>
+            <a href="testpopupalerts.html" class="resolution">Test Popup Alerts</a>
+            <a href="usalertmap.html" class="resolution">US Alert Map</a>
+            <a href="canadaalerts1080p.html" class="resolution">Canada Alert 1080p</a>
+            <a href="https://discord.gg/PUQvrMJwS" class="resolution">Discord Server</a>
+            <a href="https://www.youtube.com/watch?v=I2t6H0lTaLc&t=24s" class="resolution">Video Tutorial</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pop Up Alerts Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    html { font-size: min(0.833333vw, 1.481481vh); }
+    body { font-family: Arial, sans-serif; }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(100vw, calc(100vh * (16 / 9)));
+      height: min(100vh, calc(100vw * (9 / 16)));
+      aspect-ratio: 16 / 9;
+      transform: translate(-50%, -50%);
+      overflow: hidden;
+      background-color: rgba(0,0,0,0);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    #overlay img {
+      max-width: 90%; max-height: 90%;
+      opacity: 1;
+      transition: opacity 1.5s ease-in-out;
+    }
+
+    #popupCustomLayer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 16 / 9;
+      z-index: 1;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    #popupCustomLayer .popup-custom-box,
+    #popupCustomLayer .popup-custom-media {
+      position: absolute;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    #popupCustomLayer .popup-custom-box { overflow: visible; }
+    #popupCustomLayer .popup-custom-surface {
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      transform-origin: 0 0;
+      pointer-events: none;
+    }
+    #popupCustomLayer .popup-custom-motion {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    #popupCustomLayer .popup-custom-motion > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 0.25rem;
+      white-space: pre-wrap;
+    }
+    .popup-custom-text-content {
+      display: block;
+      width: 100%;
+      text-align: inherit;
+      white-space: pre-wrap;
+    }
+    .popup-discussion-text-content {
+      min-width: 0;
+      overflow: hidden;
+      white-space: pre;
+    }
+    .popup-area-viewport {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: left;
+      vertical-align: bottom;
+    }
+    .popup-area-text { display: inline-block; white-space: nowrap; }
+    .popup-area-marquee {
+      display: inline-flex;
+      width: max-content;
+    }
+    .popup-area-marquee > span {
+      flex: none;
+      padding-right: 2em;
+    }
+    #popupCustomLayer .popup-custom-media img,
+    #popupCustomLayer .popup-custom-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    @keyframes popup-box-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+    @keyframes popup-box-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.375rem); } }
+    @keyframes popup-box-zoom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    @keyframes popup-light-sweep { 0% { background-position: -40% 50%; } 100% { background-position: 140% 50%; } }
+
+    .text-container {
+      position: absolute;
+      font-size: 2.3rem;
+      font-weight: bold;
+      font-family: 'Bebas Neue', sans-serif;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+      color: rgb(255,255,255);
+    }
+
+    #testCountyContainer {
+      width: 80%;
+      max-width: 90%;
+      overflow: hidden;
+      white-space: nowrap;
+      box-sizing: border-box;
+    }
+    #testCountyContainer.marquee-active { text-align: left; }
+
+    .alert-area-marquee {
+      display: inline-flex;
+      width: max-content;
+    }
+    .alert-area-marquee > span {
+      flex: none;
+      padding-right: 2em;
+    }
+
+    /* Severe Thunderstorm Warning */
+    .severe#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .severe#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+    .considerableSevere#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .considerableSevere#testCountyContainer { color: rgb(255, 255, 255) !important; }
+    .destructiveSevere#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .destructiveSevere#testCountyContainer { color: rgb(255, 255, 255) !important; }
+
+    /* Flash Flood Warning */
+    .flashFlood#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .flashFlood#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+    .considerableFlashFlood#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .considerableFlashFlood#testCountyContainer { color: rgb(255, 255, 255) !important; }
+    .catastrophicFlashFlood#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .catastrophicFlashFlood#testCountyContainer { color: rgb(255, 255, 255) !important; }
+
+    /* Tornado Warning */
+    .tornado#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .tornado#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+    .pdsTornado#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .pdsTornado#testCountyContainer { color: rgb(255, 255, 255) !important; }
+    .tornadoEmergency#testWarningContainer { color: rgb(255, 255, 255) !important; }
+    .tornadoEmergency#testCountyContainer { color: rgb(255, 255, 255) !important; }
+
+    /* Special Weather Statement */
+    .specialStatement#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .specialStatement#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Severe Thunderstorm Watch */
+    .severeWatch#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .severeWatch#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Tornado Watch */
+    .tornadoWatch#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .tornadoWatch#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Winter Storm Warning */
+    .winterStorm#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .winterStorm#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Blizzard Warning */
+    .blizzard#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+    }
+    .blizzard#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255);
+      font-size: 1.3rem;
+    }
+
+    /* Tropical Storm Warning */
+    .tropicalStorm#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color as requested */
+    }
+    .tropicalStorm#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color as requested */
+      font-size: 1.3rem;
+    }
+
+    /* Hurricane Warning */
+    .hurricane#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color as requested */
+    }
+    .hurricane#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color as requested */
+      font-size: 1.3rem;
+    }
+
+    /* Snow Squall Warning */
+    .snowSquall#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color requested */
+    }
+    .snowSquall#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color requested */
+      font-size: 1.3rem;
+    }
+
+    /* Winter Storm Watch */
+    .winterWatch#testWarningContainer {
+      top: 78.1%; left: 59.2%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* event text color */
+    }
+    .winterWatch#testCountyContainer {
+      top: 81.6%; left: 58.9%;
+      transform: translate(-50%, -50%);
+      color: rgb(255, 255, 255); /* areadesc color */
+      font-size: 1.3rem;
+    }
+
+    .button-group {
+      position: absolute;
+      top: 10px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .button-group button {
+      font-size: 1.1rem;
+      padding: 8px 18px;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      cursor: pointer;
+    }
+    .test-buttons {
+      position: absolute;
+      top: 10px; left: 10px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .test-buttons button {
+      font-size: 1rem;
+      padding: 5px 10px;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      cursor: pointer;
+    }
+    .test-buttons button.active {
+      background-color: grey;
+    }
+    .mode-selector {
+      position: absolute;
+      top: 50px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .mode-selector label {
+      font-size: 1.1rem;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <script src="./popup-alert-customizations.js"></script>
+  <div class="test-buttons">
+    <button onclick="setTestMode('new', this)">Test as New Alert</button>
+    <button onclick="setTestMode('upgraded', this)">Test as Upgraded Alert</button>
+  </div>
+  <div class="button-group">
+    <button onclick="showAlert('severe')">Severe Thunderstorm Warning</button>
+    <button onclick="showAlert('severe_considerable')">Severe Thunderstorm Warning – Considerable</button>
+    <button onclick="showAlert('severe_destructive')">PDS Severe Thunderstorm Warning - Destructive</button>
+    <button onclick="showAlert('tornado')">Tornado Warning</button>
+    <button onclick="showAlert('tornado_observed')">Observed Tornado Warning</button>
+    <button onclick="showAlert('tornado_pds')">PDS Tornado Warning</button>
+    <button onclick="showAlert('tornado_emergency')">Tornado Emergency</button>
+    <button onclick="showAlert('flashflood')">Flash Flood Warning</button>
+    <button onclick="showAlert('flashflood_considerable')">Flash Flood Warning - Considerable</button>
+    <button onclick="showAlert('flashflood_catastrophic')">Flash Flood Emergency</button>
+    <button onclick="showAlert('special_statement')">Special Weather Statement</button>
+    <button onclick="showAlert('special_marine_warning')">Special Marine Warning</button>
+    <button onclick="showAlert('severe_watch')">Severe Thunderstorm Watch</button>
+    <button onclick="showAlert('tornado_watch')">Tornado Watch</button>
+    <button onclick="showAlert('winter_storm')">Winter Storm Warning</button>
+    <button onclick="showAlert('blizzard')">Blizzard Warning</button>
+    <button onclick="showAlert('tropical_storm')">Tropical Storm Warning</button>
+    <button onclick="showAlert('hurricane')">Hurricane Warning</button>
+    <button onclick="showAlert('snow_squall')">Snow Squall Warning</button>
+    <button onclick="showAlert('winter_watch')">Winter Storm Watch</button>
+    <button onclick="showAlert('dust_advisory')">Dust Advisory</button>
+    <button onclick="showAlert('dust_storm')">Dust Storm Warning</button>
+    <button onclick="showAlert('dust_storm_pds')">PDS Dust Storm Warning</button>
+    <button onclick="showAlert('mesoscale_discussion')">Mesoscale Discussion</button>
+    <button onclick="showAlert('mesoscale_precipitation_discussion')">Mesoscale Percipitation Discussion</button>
+  </div>
+  <div id="overlay">
+    <img id="overlayImage" src="" alt="Warning Image" />
+    <div id="popupCustomLayer" aria-hidden="true"></div>
+    <audio id="overlayAudio"></audio>
+    <div id="testWarningContainer" class="text-container severe"></div>
+    <div id="testCountyContainer"  class="text-container severe"></div>
+  </div>
+
+  <script>
+    let alertQueue = [], isOverlayActive = false, initialLoad = true;
+    let testAsUpgraded = false;
+
+    const issuedSevereAlerts       = {};
+    const issuedTornadoAlerts      = {};
+    const issuedFlashFloodAlerts   = {};
+
+    const lastQueuedTime = {
+      tornado: 0,
+      severe: 0,
+      flashFlood: 0
+    };
+    const throttleDelay = 0;
+
+    function getText(node, tag) {
+      return node.querySelector(tag)?.textContent || "";
+    }
+
+    // replace previous generateAlertKey with id-aware version
+    const normalizeArea = area => area.toLowerCase().trim();
+
+    function generateAlertKey(eventText, areaDesc, id) {
+      // prefer using a stable id when available so two different alerts
+      // with identical text/areas are not treated as the same record
+      if (id) return `${eventText.toLowerCase().trim()}|${normalizeArea(areaDesc)}|id:${id}`;
+      return `${eventText.toLowerCase().trim()}|${normalizeArea(areaDesc)}`;
+    }
+
+    function formatAreaDesc(areaDesc) {
+      const areas = areaDesc.split(";")
+        .map(a => a.trim())
+        .filter(a => a);
+      return areas.join("; ");
+    }
+
+    function enqueueAlert(options) {
+      const { type, alertKey, force } = options;
+      const issuedMap = {
+        severe: issuedSevereAlerts,
+        tornado: issuedTornadoAlerts,
+        flashFlood: issuedFlashFloodAlerts
+      }[type];
+
+      if (issuedMap[alertKey]?.queued && !force) return;
+
+      const now = Date.now();
+      if (now - lastQueuedTime[type] < throttleDelay) return;
+      lastQueuedTime[type] = now;
+
+      alertQueue.push(options);
+      if (!issuedMap[alertKey]) {
+        issuedMap[alertKey] = {
+          state: options.state,
+          queued: true,
+          lastDisplayed: options.state
+        };
+      } else {
+        issuedMap[alertKey].queued = true;
+      }
+    }
+
+    function processNextAlert() {
+      if (!alertQueue.length) return;
+      isOverlayActive = true;
+      triggerWarning(alertQueue.shift());
+    }
+
+    function getPopupCustomizationType(opts) {
+      if (opts.customizationType) return opts.customizationType;
+      if (opts.type === "severe") {
+        return opts.destructive ? "Destructive Severe Thunderstorm Warning" :
+          opts.considerable ? "Considerable Severe Thunderstorm Warning" : "Severe Thunderstorm Warning";
+      }
+      if (opts.type === "tornado") {
+        return opts.emergency ? "Tornado Emergency" : opts.pds ? "PDS Tornado Warning" :
+          opts.state === "OBSERVED" ? "Observed Tornado Warning" : "Tornado Warning";
+      }
+      if (opts.type === "flashFlood") {
+        return opts.flashFloodCatastrophic ? "Flash Flood Emergency" :
+          opts.flashFloodConsiderable ? "Considerable Flash Flood Warning" : "Flash Flood Warning";
+      }
+      return ({
+        specialStatement: "Special Weather Statement",
+        severeWatch: "Severe Thunderstorm Watch",
+        tornadoWatch: "Tornado Watch",
+        winterStorm: "Winter Storm Warning",
+        blizzard: "Blizzard Warning",
+        tropicalStorm: "Tropical Storm Warning",
+        hurricane: "Hurricane Warning",
+        snowSquall: "Snow Squall Warning",
+        winterWatch: "Winter Storm Watch",
+        dustStorm: opts.pds ? "PDS Dust Storm Warning" : "Dust Storm Warning",
+        mesoscaleDiscussion: "Mesoscale Discussion",
+        mesoscalePrecipitationDiscussion: "Mesoscale Percipitation Discussion"
+      })[opts.type] || "";
+    }
+
+    function popupPixelsToRem(value) {
+      return `${Number(value) / 16}rem`;
+    }
+
+    function getPopupTextShadow(box, includeOutline = true, includeShadows = true) {
+      const shadows = [];
+      const outline = Number(box.textOutlineWidth);
+      if (includeOutline && box.textOutlinePosition === "outside" && Number.isFinite(outline) && outline > 0) {
+        const color = box.textOutlineColor || "#000000";
+        const width = Math.max(0, outline);
+        if (box.textOutlineStyle === "rounded") {
+          const ringCount = Math.max(12, Math.min(48, Math.ceil(width * 10)));
+          for (let i = 0; i < ringCount; i += 1) {
+            const angle = (Math.PI * 2 * i) / ringCount;
+            const dx = (Math.cos(angle) * width).toFixed(2);
+            const dy = (Math.sin(angle) * width).toFixed(2);
+            shadows.push(`${popupPixelsToRem(dx)} ${popupPixelsToRem(dy)} 0 ${color}`);
+          }
+        } else {
+          const radius = Math.ceil(width);
+          for (let x = -radius; x <= radius; x += 1) {
+            const scaledX = (x / radius) * width;
+            shadows.push(`${popupPixelsToRem(scaledX)} ${popupPixelsToRem(-width)} 0 ${color}`,
+              `${popupPixelsToRem(scaledX)} ${popupPixelsToRem(width)} 0 ${color}`);
+          }
+          for (let y = -radius + 1; y <= radius - 1; y += 1) {
+            const scaledY = (y / radius) * width;
+            shadows.push(`${popupPixelsToRem(-width)} ${popupPixelsToRem(scaledY)} 0 ${color}`,
+              `${popupPixelsToRem(width)} ${popupPixelsToRem(scaledY)} 0 ${color}`);
+          }
+        }
+      }
+      const size = Number(box.textDropShadowSize);
+      if (includeShadows && box.textDropShadowEnabled && Number.isFinite(size) && size > 0) {
+        const angle = (Number(box.textDropShadowAngle) || 45) * Math.PI / 180;
+        const distance = Number(box.textDropShadowDistance) || 5;
+        const offsetX = Math.round(Math.cos(angle) * distance);
+        const offsetY = Math.round(Math.sin(angle) * distance);
+        const opacityValue = box.textDropShadowOpacity == null ? 100 : Number(box.textDropShadowOpacity);
+        const opacity = Math.max(0, Math.min(100, Number.isFinite(opacityValue) ? opacityValue : 100)) / 100;
+        const color = box.textDropShadowColor || "#000000";
+        const rgb = /^#([0-9a-f]{6})$/i.exec(color);
+        const shadowColor = rgb ?
+          `rgba(${parseInt(rgb[1].slice(0, 2), 16)}, ${parseInt(rgb[1].slice(2, 4), 16)}, ${parseInt(rgb[1].slice(4, 6), 16)}, ${opacity})` :
+          color;
+        const blur = Math.max(0, size);
+        shadows.push(`${popupPixelsToRem(offsetX)} ${popupPixelsToRem(offsetY)} ${popupPixelsToRem(blur)} ${shadowColor}`);
+        const spread = Math.max(0, Number(box.textDropShadowSpread) || 0);
+        if (spread > 0) {
+          const stepCount = Math.max(1, Math.min(4, Math.floor(spread / 8) + 1));
+          for (let i = 1; i <= stepCount; i += 1) {
+            shadows.push(
+              `${popupPixelsToRem(offsetX + i)} ${popupPixelsToRem(offsetY)} ${popupPixelsToRem(blur)} ${shadowColor}`,
+              `${popupPixelsToRem(offsetX - i)} ${popupPixelsToRem(offsetY)} ${popupPixelsToRem(blur)} ${shadowColor}`,
+              `${popupPixelsToRem(offsetX)} ${popupPixelsToRem(offsetY + i)} ${popupPixelsToRem(blur)} ${shadowColor}`,
+              `${popupPixelsToRem(offsetX)} ${popupPixelsToRem(offsetY - i)} ${popupPixelsToRem(blur)} ${shadowColor}`
+            );
+          }
+        }
+      }
+      if (includeShadows && Number(box.textShadowSize) > 0) {
+        shadows.push(`${popupPixelsToRem(2)} ${popupPixelsToRem(2)} ${popupPixelsToRem(Number(box.textShadowSize))} ${box.textShadowColor || "#000000"}`);
+      }
+      return shadows.length ? shadows.join(", ") : "none";
+    }
+
+    function appendPopupTextEffectLayer(motionLayer, text, shadow, zIndex) {
+      if (!shadow || shadow === "none") return;
+      const effect = text.cloneNode(true);
+      effect.setAttribute("aria-hidden", "true");
+      effect.style.position = "absolute";
+      effect.style.inset = "0";
+      effect.style.zIndex = String(zIndex);
+      effect.style.color = "transparent";
+      effect.style.backgroundImage = "none";
+      effect.style.backgroundClip = "initial";
+      effect.style.webkitBackgroundClip = "initial";
+      effect.style.webkitTextFillColor = "transparent";
+      effect.style.webkitTextStroke = "0px transparent";
+      effect.style.textShadow = shadow;
+      motionLayer.appendChild(effect);
+    }
+
+    function renderPopupCustomization(alertType, eventText, areaDesc, concerning = "", discussionFields = {}) {
+      const layer = document.getElementById("popupCustomLayer");
+      if (!layer) return;
+      layer.replaceChildren();
+      layer.dataset.alertType = "";
+      const customizations = window.POPUP_ALERT_CUSTOMIZATIONS;
+      if (!customizations || !Object.prototype.hasOwnProperty.call(customizations, alertType)) return;
+      const config = customizations[alertType];
+      if (!config || typeof config !== "object") return;
+      layer.dataset.alertType = alertType;
+
+      let hasEventText = false;
+      let hasAreaText = false;
+      let hasCustomText = false;
+      const media = config.media;
+      if (media && typeof media.src === "string" && media.src) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "popup-custom-media";
+        const mediaElement = document.createElement(media.mediaType === "video" ? "video" : "img");
+        mediaElement.src = media.src;
+        if (mediaElement instanceof HTMLVideoElement) {
+          mediaElement.muted = true;
+          mediaElement.loop = true;
+          mediaElement.autoplay = true;
+          mediaElement.playsInline = true;
+        }
+        mediaElement.draggable = false;
+        wrapper.appendChild(mediaElement);
+        layer.appendChild(wrapper);
+      }
+
+      (Array.isArray(config.boxes) ? config.boxes : []).forEach((box, index) => {
+        if (!box || ![box.x, box.y, box.width, box.height].every(value => Number.isFinite(Number(value)))) return;
+        const element = document.createElement("div");
+        element.className = "popup-custom-box";
+        element.dataset.boxIndex = String(index);
+        const surface = document.createElement("div");
+        surface.className = "popup-custom-surface";
+        const motionLayer = document.createElement("div");
+        motionLayer.className = "popup-custom-motion";
+
+        if (typeof box.text === "string" && box.text.trim()) {
+          hasCustomText = true;
+          const text = document.createElement("span");
+          const alertFields = discussionFields.alertFields || {};
+          const formatDamageThreat = (hazard, value) => {
+            const level = value == null ? "" : String(value).trim();
+            if (!level) return "";
+            return `${hazard} Damage Threat ${level.toLowerCase().replace(/\b[a-z]/g, character => character.toUpperCase())}`;
+          };
+          const tokens = {
+            AlertName: eventText,
+            Areas: areaDesc,
+            Conserning: concerning,
+            Concerning: concerning,
+            WatchProbability: discussionFields.watchProbability == null ? "" : String(discussionFields.watchProbability),
+            MostProbablePeakTornadoIntensity: discussionFields.mostProbablePeakTornadoIntensity == null ? "" : String(discussionFields.mostProbablePeakTornadoIntensity),
+            MostProbablePeakWindGust: discussionFields.mostProbablePeakWindGust == null ? "" : String(discussionFields.mostProbablePeakWindGust),
+            MaxHailSize: alertFields.MaxHailSize == null ? "" : String(alertFields.MaxHailSize),
+            TornadoDamageThreat: formatDamageThreat("Tornado", alertFields.TornadoDamageThreat),
+            Tornado: alertFields.Tornado == null ? "" : String(alertFields.Tornado),
+            FlashFlood: alertFields.FlashFlood == null ? "" : String(alertFields.FlashFlood),
+            FlashFloodDamageThreat: formatDamageThreat("Flash Flood", alertFields.FlashFloodDamageThreat),
+            ThunderstormDamageThreat: formatDamageThreat("Thunderstorm", alertFields.ThunderstormDamageThreat),
+            MaxWindGust: alertFields.MaxWindGust == null ? "" : String(alertFields.MaxWindGust),
+            WindThreat: alertFields.WindThreat == null ? "" : String(alertFields.WindThreat),
+            HailThreat: alertFields.HailThreat == null ? "" : String(alertFields.HailThreat),
+            Hazard: alertFields.Hazard == null ? "" : String(alertFields.Hazard),
+            Source: alertFields.Source == null ? "" : String(alertFields.Source),
+            Impact: alertFields.Impact == null ? "" : String(alertFields.Impact),
+            AlertInstructions: "",
+            ExpireTime: "",
+            TornadoWarnings: eventText,
+            SevereThunderstormWarnings: eventText,
+            FloodAlerts: eventText,
+            WinterWeatherAlerts: eventText
+          };
+          let rawText = box.text.trim();
+          const alertFieldTokens = [
+            "MaxHailSize", "TornadoDamageThreat", "Tornado", "FlashFlood",
+            "FlashFloodDamageThreat", "ThunderstormDamageThreat", "MaxWindGust",
+            "WindThreat", "HailThreat", "Hazard", "Source", "Impact"
+          ];
+          alertFieldTokens.forEach(token => {
+            if (tokens[token].trim()) return;
+            const segmentPattern = new RegExp(`(^|[|\\n])\\s*[^|\\n]*\\(${token}\\)[^|\\n]*(?=$|[|\\n])`, "g");
+            rawText = rawText.replace(segmentPattern, "$1");
+          });
+          rawText = rawText
+            .replace(/^\s*\|\s*/, "")
+            .replace(/\s*\|\s*$/, "")
+            .replace(/\s*\|\s*\|\s*/g, " | ")
+            .replace(/\n{2,}/g, "\n");
+          const overrides = config.textOverrides || {};
+          const fallbackAlertName = (/(upgraded|upgraded alert)/i.test(eventText) ? overrides.upgraded : overrides.normal) || eventText;
+          const literalMatch = rawText.toLowerCase() === eventText.toLowerCase() ||
+            ["alertname", "[alertname]", "(alertname)"].includes(rawText.toLowerCase());
+          let renderedText = rawText.replace(/\((AlertName|Areas|Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MostProbablePeakWindGust|MaxHailSize|TornadoDamageThreat|Tornado|FlashFlood|FlashFloodDamageThreat|ThunderstormDamageThreat|MaxWindGust|WindThreat|HailThreat|Hazard|Source|Impact|AlertInstructions|ExpireTime|TornadoWarnings|SevereThunderstormWarnings|FloodAlerts|WinterWeatherAlerts)\)/g, (match, token) => {
+            if (token === "AlertName" || token.endsWith("Warnings") || token === "FloodAlerts") hasEventText = true;
+            if (token === "Areas") hasAreaText = true;
+            return tokens[token] || "";
+          });
+          if (literalMatch && fallbackAlertName) {
+            renderedText = fallbackAlertName;
+            hasEventText = true;
+          }
+          const hasDiscussionTokens = /\((Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MostProbablePeakWindGust)\)/.test(rawText);
+          const hasRecognizedTokens = /\((AlertName|Areas|Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MostProbablePeakWindGust|MaxHailSize|TornadoDamageThreat|Tornado|FlashFlood|FlashFloodDamageThreat|ThunderstormDamageThreat|MaxWindGust|WindThreat|HailThreat|Hazard|Source|Impact|AlertInstructions|ExpireTime|TornadoWarnings|SevereThunderstormWarnings|FloodAlerts|WinterWeatherAlerts)\)/.test(rawText);
+          if (!literalMatch && hasRecognizedTokens) {
+            const content = document.createElement("span");
+            content.className = "popup-custom-text-content";
+            if (hasDiscussionTokens) {
+              content.classList.add("popup-discussion-text-content");
+            }
+            const tokenPattern = /\((AlertName|Areas|Conserning|Concerning|WatchProbability|MostProbablePeakTornadoIntensity|MaxHailSize|TornadoDamageThreat|Tornado|FlashFlood|FlashFloodDamageThreat|ThunderstormDamageThreat|MaxWindGust|WindThreat|HailThreat|Hazard|Source|Impact|AlertInstructions|ExpireTime|TornadoWarnings|SevereThunderstormWarnings|FloodAlerts|WinterWeatherAlerts)\)/g;
+            let lastIndex = 0;
+            let hasRenderedContent = false;
+            let hasSkippedToken = false;
+            const appendText = (value) => {
+              let textValue = value;
+              if (!hasRenderedContent && (rawText.includes("(Areas)") || hasDiscussionTokens || hasSkippedToken)) {
+                textValue = textValue.replace(/^[\s,;|·•]+/, "");
+              }
+              if (textValue) content.appendChild(document.createTextNode(textValue));
+              if (textValue.trim()) hasRenderedContent = true;
+            };
+            let tokenMatch;
+            while ((tokenMatch = tokenPattern.exec(rawText))) {
+              const tokenValue = tokens[tokenMatch[1]] || "";
+              const isMissingToken = !tokenValue.trim();
+              if (!isMissingToken) appendText(rawText.slice(lastIndex, tokenMatch.index));
+              if (isMissingToken) {
+                hasSkippedToken = true;
+                lastIndex = tokenPattern.lastIndex;
+                continue;
+              }
+              if (tokenMatch[1] === "Areas") {
+                const viewport = document.createElement("span");
+                viewport.className = "popup-area-viewport";
+                const areaText = document.createElement("span");
+                areaText.className = "popup-area-text";
+                areaText.textContent = areaDesc;
+                viewport.appendChild(areaText);
+                content.appendChild(viewport);
+                if (areaDesc.trim()) hasRenderedContent = true;
+              } else {
+                appendText(tokenValue);
+              }
+              lastIndex = tokenPattern.lastIndex;
+            }
+            appendText(rawText.slice(lastIndex));
+            text.appendChild(content);
+          } else {
+            text.textContent = renderedText;
+          }
+          appendPopupTextEffectLayer(motionLayer, text, getPopupTextShadow(box, false, true), 1);
+          if (box.textOutlinePosition === "outside") {
+            appendPopupTextEffectLayer(motionLayer, text, getPopupTextShadow(box, true, false), 2);
+          }
+          text.style.position = "relative";
+          text.style.zIndex = "3";
+          text.style.textShadow = "none";
+          if (box.textOutlinePosition !== "outside" && Number(box.textOutlineWidth) > 0) {
+            text.style.webkitTextStroke = `${popupPixelsToRem(Number(box.textOutlineWidth))} ${box.textOutlineColor || "#000000"}`;
+            text.style.paintOrder = "stroke fill";
+          } else {
+            text.style.webkitTextStroke = "0px transparent";
+            text.style.paintOrder = "";
+          }
+          motionLayer.appendChild(text);
+        }
+        surface.appendChild(motionLayer);
+        element.appendChild(surface);
+        layer.appendChild(element);
+      });
+
+      if (hasCustomText || hasEventText) document.getElementById("testWarningContainer").style.display = "none";
+      if (hasCustomText || hasAreaText) document.getElementById("testCountyContainer").style.display = "none";
+    }
+
+    function startPopupAreaMarquees(layer) {
+      const animations = [];
+      layer.querySelectorAll(".popup-discussion-text-content").forEach(content => {
+        if (content.scrollWidth <= content.clientWidth) return;
+
+        const marquee = document.createElement("span");
+        marquee.className = "popup-area-marquee";
+        const item = document.createElement("span");
+        item.textContent = content.textContent;
+        marquee.appendChild(item);
+        content.replaceChildren(marquee);
+        const distance = item.scrollWidth;
+        const animation = marquee.animate(
+          [{ transform: "translateX(0)" }, { transform: `translateX(-${distance}px)` }],
+          { duration: Math.max(8000, distance / 130 * 1000), easing: "linear", fill: "forwards" }
+        );
+        animations.push(animation.finished);
+      });
+      layer.querySelectorAll(".popup-area-viewport").forEach(viewport => {
+        const areaText = viewport.querySelector(".popup-area-text");
+        if (!areaText || areaText.scrollWidth <= viewport.clientWidth) return;
+
+        const marquee = document.createElement("span");
+        marquee.className = "popup-area-marquee";
+        const item = document.createElement("span");
+        item.textContent = areaText.textContent;
+        marquee.appendChild(item);
+        viewport.replaceChildren(marquee);
+        const distance = marquee.scrollWidth;
+        animations.push(marquee.animate(
+          [{ transform: "translateX(0)" }, { transform: `translateX(-${distance}px)` }],
+          { duration: Math.max(8000, distance / 130 * 1000), easing: "linear", fill: "forwards" }
+        ).finished);
+      });
+      return Promise.all(animations);
+    }
+
+    function startAlertAreaMarquee(element) {
+      if (!element || element.scrollWidth <= element.clientWidth) return Promise.resolve();
+      element.classList.add("marquee-active");
+      const marquee = document.createElement("span");
+      marquee.className = "alert-area-marquee";
+      const item = document.createElement("span");
+      item.textContent = element.textContent;
+      marquee.appendChild(item);
+      element.replaceChildren(marquee);
+      const distance = item.scrollWidth;
+      return marquee.animate(
+        [{ transform: "translateX(0)" }, { transform: `translateX(-${distance}px)` }],
+        { duration: Math.max(8000, distance / 130 * 1000), easing: "linear", fill: "forwards" }
+      ).finished;
+    }
+
+    function getPopupCssAnimationDuration(layer) {
+      if (!layer || typeof layer.getAnimations !== "function") return 0;
+      return layer.getAnimations({ subtree: true }).reduce((maximum, animation) => {
+        const effect = animation.effect;
+        if (!effect || typeof effect.getComputedTiming !== "function") return maximum;
+        const timing = effect.getComputedTiming();
+        const baseTiming = effect.getTiming();
+        const duration = Number(timing.duration);
+        if (!Number.isFinite(duration) || duration <= 0) return maximum;
+        const iterations = Number.isFinite(timing.iterations) ? Math.max(1, timing.iterations) : 1;
+        return Math.max(maximum, Math.max(0, Number(baseTiming.delay) || 0) + duration * iterations);
+      }, 0);
+    }
+
+    function popupBounceOut(progress) {
+      const n1 = 7.5625;
+      const d1 = 2.75;
+      if (progress < 1 / d1) return n1 * progress * progress;
+      if (progress < 2 / d1) return n1 * (progress -= 1.5 / d1) * progress + 0.75;
+      if (progress < 2.5 / d1) return n1 * (progress -= 2.25 / d1) * progress + 0.9375;
+      return n1 * (progress -= 2.625 / d1) * progress + 0.984375;
+    }
+
+    function popupEase(name, progress) {
+      if (name === "CubicEasingIn") return progress * progress * progress;
+      if (name === "CubicEasingOut") return 1 - Math.pow(1 - progress, 3);
+      if (name === "CubicEasingInOut") return progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      if (name === "BounceIn") return 1 - popupBounceOut(1 - progress);
+      if (name === "BounceOut") return popupBounceOut(progress);
+      return progress;
+    }
+
+    function computePopupTransitionMotion(board, progress, config, rect) {
+      const type = config.type || "None";
+      const dx = Number(config.dirX) || 0;
+      const dy = Number(config.dirY) || 0;
+      const dirX = dx === 0 && dy === 0 ? 0 : dx;
+      const dirY = dx === 0 && dy === 0 ? -1 : dy;
+      const distance = Math.max(rect.width, rect.height) * 0.55 * (type === "Scroll" ? 1.35 : 1);
+      const visibleIn = progress;
+      const visibleOut = 1 - progress;
+      const motion = (opacity = 1, tx = 0, ty = 0, sx = 1, sy = 1, rotate = 0, origin = "", clipPath = "none") => ({
+        opacity, transform: `translate(${tx}px, ${ty}px) scale(${sx}, ${sy}) rotate(${rotate}deg)`,
+        transformOrigin: origin, clipPath, _motion: { tx, ty, sx, sy, rotate, origin }
+      });
+
+      if (Array.isArray(config._parallelStages)) {
+        const elapsed = Math.max(0, Math.min(1, progress)) * config._parallelDurationMs;
+        const motions = config._parallelStages.map(stage => {
+          const delayMs = Math.max(0, Number(stage.delay) || 0) * 1000;
+          const durationMs = Math.max(0, Number(stage.duration) || 0) * 1000;
+          const stageProgress = elapsed < delayMs ? 0 : durationMs <= 0 ? 1 : Math.min(1, (elapsed - delayMs) / durationMs);
+          const eased = popupEase(stage.easing, stageProgress);
+          return computePopupTransitionMotion(board, stage.reverse ? 1 - eased : eased, {
+            ...stage,
+            _originX: config._originX,
+            _originY: config._originY
+          }, rect);
+        });
+        const combined = motions.reduce((result, item, index) => {
+          const value = item._motion;
+          if (index === 0) return { ...value, opacity: item.opacity };
+          result.opacity *= item.opacity;
+          result.tx += value.tx;
+          result.ty += value.ty;
+          result.sx *= value.sx;
+          result.sy *= value.sy;
+          result.rotate += value.rotate;
+          if (value.origin) result.origin = value.origin;
+          return result;
+        }, { opacity: 1, tx: 0, ty: 0, sx: 1, sy: 1, rotate: 0, origin: "", clipPath: "none" });
+        const clipPaths = motions.map(item => item.clipPath).filter(clipPath => clipPath && clipPath !== "none");
+        let clipPath = clipPaths[clipPaths.length - 1] || "none";
+        if (clipPaths.length > 1 && clipPaths.every(value => /^inset\(/i.test(value))) {
+          const insets = clipPaths.map(value => {
+            const values = value.match(/^inset\(([^)]+)\)$/i)[1].split(/\s+/).map(parseFloat);
+            if (values.length === 1) return [values[0], values[0], values[0], values[0]];
+            if (values.length === 2) return [values[0], values[1], values[0], values[1]];
+            if (values.length === 3) return [values[0], values[1], values[2], values[1]];
+            return values.slice(0, 4);
+          });
+          clipPath = `inset(${[0, 1, 2, 3].map(index => Math.max(...insets.map(inset => inset[index]))).join("% ")}%)`;
+        }
+        return motion(combined.opacity, combined.tx, combined.ty, combined.sx, combined.sy,
+          combined.rotate, combined.origin, clipPath);
+      }
+
+      if (type === "None") return motion();
+      if (type === "Hidden" || type === "Cut") return motion(board === "in" ? (progress >= 1 ? 1 : 0) : (progress >= 1 ? 0 : 1));
+      if (type === "Fade") return motion(board === "in" ? visibleIn : visibleOut);
+      if (type === "Fly" || type === "Scroll") {
+        return board === "in" ? motion(visibleIn, -dirX * distance * (1 - progress), -dirY * distance * (1 - progress)) :
+          motion(visibleOut, dirX * distance * progress, dirY * distance * progress);
+      }
+      if (type === "Zoom" || type === "ZoomFade" || type === "Expand") {
+        let scale = board === "in" ? progress : 1 - progress;
+        if (type === "Expand") scale *= scale;
+        scale = Math.max(0.001, scale);
+        return motion(type === "ZoomFade" ? (board === "in" ? visibleIn : visibleOut) : 1, 0, 0, scale, scale, 0, "center center");
+      }
+      if (type === "Rotate") {
+        const sign = dirX < 0 ? -1 : dirX > 0 ? 1 : dirY >= 0 ? 1 : -1;
+        return motion(board === "in" ? visibleIn : visibleOut, 0, 0, 1, 1,
+          board === "in" ? (1 - progress) * 360 * sign : progress * 360 * sign, "center center");
+      }
+      if (type === "Reveal") {
+        const visible = board === "in" ? progress : 1 - progress;
+        const origin = `${dirX < 0 ? "left" : dirX > 0 ? "right" : "center"} ${dirY < 0 ? "top" : dirY > 0 ? "bottom" : "center"}`;
+        const scale = Math.max(0.001, visible);
+        return motion(1, 0, 0, dirX && dirY ? scale : dirX ? scale : 1, dirX && dirY ? scale : dirY ? scale : 1, 0, origin);
+      }
+      if (type === "Wipe") {
+        const amount = (board === "in" ? 1 - progress : progress) * 100;
+        const clipPath = Math.abs(dirX) >= Math.abs(dirY) ?
+          (dirX < 0 ? `inset(0 ${amount}% 0 0)` : dirX > 0 ? `inset(0 0 0 ${amount}%)` :
+            dirY < 0 ? `inset(${amount}% 0 0 0)` : `inset(0 0 ${amount}% 0)`) :
+          (dirY < 0 ? `inset(${amount}% 0 0 0)` : `inset(0 0 ${amount}% 0)`);
+        return motion(1, 0, 0, 1, 1, 0, "", clipPath);
+      }
+      if (type === "MotionPath" && Array.isArray(config.motionPath) && config.motionPath.length > 1) {
+        const points = config.motionPath;
+        const lengths = [];
+        let total = 0;
+        for (let i = 1; i < points.length; i += 1) {
+          const length = Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+          lengths.push(length);
+          total += length;
+        }
+        let remaining = progress * total;
+        let target = { ...points[points.length - 1], angle: 0 };
+        for (let i = 0; i < lengths.length; i += 1) {
+          const segmentLength = lengths[i];
+          if (remaining <= segmentLength || i === lengths.length - 1) {
+            const start = points[i];
+            const end = points[i + 1];
+            const amount = segmentLength ? remaining / segmentLength : 0;
+            target = {
+              x: start.x + (end.x - start.x) * amount,
+              y: start.y + (end.y - start.y) * amount,
+              angle: Math.atan2(end.y - start.y, end.x - start.x) * 180 / Math.PI
+            };
+            break;
+          }
+          remaining -= segmentLength;
+        }
+        const originX = Number(config._originX) || 0;
+        const originY = Number(config._originY) || 0;
+        const start = points[0];
+        const tx = board === "in" ? ((target.x - originX) / 100) * rect.width : ((target.x - start.x) / 100) * rect.width;
+        const ty = board === "in" ? ((target.y - originY) / 100) * rect.height : ((target.y - start.y) / 100) * rect.height;
+        return motion(1, tx, ty, 1, 1, config.autoRotate ? target.angle : 0, "center center");
+      }
+      if (type === "Bounce") {
+        const bounced = popupBounceOut(progress);
+        return board === "in" ? motion(visibleIn, -dirX * distance * (1 - bounced), -dirY * distance * (1 - bounced), 0.25 + 0.75 * bounced, 0.25 + 0.75 * bounced, 0, "center center") :
+          motion(visibleOut, dirX * distance * bounced, dirY * distance * bounced, Math.max(0.001, 1 - 0.75 * bounced), Math.max(0.001, 1 - 0.75 * bounced), 0, "center center");
+      }
+      if (type === "ImageSequence") {
+        const opacity = progress <= 0.05 ? (board === "in" ? 0 : 1) : progress >= 0.95 ? (board === "in" ? 1 : 0) : 0.25 + 0.75 * (Math.floor(progress * 16) % 2);
+        return motion(opacity);
+      }
+      return motion();
+    }
+
+    function compensatePopupTransitionDelay(config, compensationMs) {
+      if (!config || !Number.isFinite(compensationMs) || compensationMs <= 0) return config;
+      const delay = Math.max(0, Number(config.delay) || 0) * 1000;
+      return {
+        ...config,
+        delay: Math.max(0, delay - compensationMs) / 1000,
+        ...(config.secondAnimation ? {
+          secondAnimation: compensatePopupTransitionDelay(config.secondAnimation, compensationMs)
+        } : {})
+      };
+    }
+
+    function getPopupTransitionDelays(config) {
+      if (!config || !config.type || config.type === "None") return [];
+      const delays = [Math.max(0, Number(config.delay) || 0) * 1000];
+      if (config.secondAnimation) delays.push(...getPopupTransitionDelays(config.secondAnimation));
+      return delays;
+    }
+
+    function playPopupBoxTransitionStage(element, config, board, rect, isFinalStage) {
+      if (!element || !config || !config.type || config.type === "None" || typeof element.animate !== "function") return Promise.resolve();
+      const duration = Math.max(0, Number(config.duration) || 0) * 1000;
+      const delay = Math.max(0, Number(config.delay) || 0) * 1000;
+      const origin = { ...config, _originX: Number(config._originX), _originY: Number(config._originY) };
+      const hasWipe = config.type === "Wipe" || (config._parallelStages || []).some(stage => stage.type === "Wipe");
+      const clipTarget = hasWipe ? element.querySelector(".popup-custom-surface") : null;
+      const steps = duration > 0 ? 30 : 1;
+      const frames = [];
+      const clipFrames = [];
+      for (let i = 0; i <= steps; i += 1) {
+        const time = i / steps;
+        const eased = popupEase(config.easing, time);
+        const progress = config.reverse ? 1 - eased : eased;
+        const motion = computePopupTransitionMotion(board, progress, origin, rect);
+        if (clipTarget) {
+          clipFrames.push({ clipPath: motion.clipPath, offset: time });
+          delete motion.clipPath;
+        }
+        const frame = { ...motion, offset: time };
+        delete frame._motion;
+        frames.push(frame);
+      }
+      const animations = [element.animate(frames, { duration, delay, fill: "both", easing: "linear" })];
+      if (clipTarget) animations.push(clipTarget.animate(clipFrames, { duration, delay, fill: "both", easing: "linear" }));
+      return new Promise(resolve => setTimeout(resolve, delay + duration)).then(() => {
+        const motionPathStages = config._parallelStages
+          ? config._parallelStages.filter(stage => stage.type === "MotionPath")
+          : config.type === "MotionPath" ? [config] : [];
+        if (motionPathStages.length && rect.width && rect.height) {
+          const offset = motionPathStages.reduce((total, stage) => {
+            const stageConfig = {
+              ...stage,
+              _originX: config._originX,
+              _originY: config._originY
+            };
+            const endProgress = stage.reverse ? 0 : 1;
+            const stageMotion = computePopupTransitionMotion(board, endProgress, stageConfig, rect)._motion;
+            total.tx += stageMotion.tx;
+            total.ty += stageMotion.ty;
+            return total;
+          }, { tx: 0, ty: 0 });
+          const style = window.getComputedStyle(element);
+          const left = Number.parseFloat(style.left) || 0;
+          const top = Number.parseFloat(style.top) || 0;
+          element.style.left = `${((left + offset.tx) / rect.width) * 100}%`;
+          element.style.top = `${((top + offset.ty) / rect.height) * 100}%`;
+        }
+        animations.forEach(animation => {
+          try { animation.finish(); } catch (error) {}
+        });
+        const finalFrame = frames[frames.length - 1];
+        element.style.opacity = String(finalFrame.opacity);
+        element.style.transformOrigin = finalFrame.transformOrigin || "";
+        if (config.type === "MotionPath") {
+          const finalMotion = computePopupTransitionMotion(board, config.reverse ? 0 : 1, origin, rect)._motion;
+          element.style.transform = `translate(0px, 0px) scale(${finalMotion.sx}, ${finalMotion.sy}) rotate(${finalMotion.rotate}deg)`;
+        } else {
+          element.style.transform = finalFrame.transform;
+        }
+        if (clipTarget && clipFrames.length) {
+          clipTarget.style.clipPath = clipFrames[clipFrames.length - 1].clipPath;
+        } else if (finalFrame.clipPath) {
+          element.style.clipPath = finalFrame.clipPath;
+        }
+        animations.forEach(animation => {
+          if (board !== "out" || !isFinalStage || config.type === "MotionPath") animation.cancel();
+        });
+      });
+    }
+
+    function getPopupMotionPathElementOrigin(element, boxes, rect) {
+      const box = boxes[Number(element.dataset.boxIndex)];
+      const centerOf = item => {
+        const bounds = item.getBoundingClientRect();
+        return {
+          x: ((bounds.left + bounds.width / 2 - rect.left) / rect.width) * 100,
+          y: ((bounds.top + bounds.height / 2 - rect.top) / rect.height) * 100
+        };
+      };
+      if (!box || !box.groupId) return centerOf(element);
+      const members = boxes.map((member, index) => ({
+        member,
+        element: document.querySelector(`.popup-custom-box[data-box-index="${index}"]`)
+      })).filter(item => item.member && item.member.groupId === box.groupId && item.element);
+      if (members.length < 2) return centerOf(element);
+      const bounds = members.map(item => item.element.getBoundingClientRect());
+      const left = Math.min(...bounds.map(item => item.left));
+      const top = Math.min(...bounds.map(item => item.top));
+      const right = Math.max(...bounds.map(item => item.right));
+      const bottom = Math.max(...bounds.map(item => item.bottom));
+      return {
+        x: ((left + (right - left) / 2 - rect.left) / rect.width) * 100,
+        y: ((top + (bottom - top) / 2 - rect.top) / rect.height) * 100
+      };
+    }
+
+    function playPopupBoxTransition(element, config, board, rect, boxes, delayCompensationMs = 0) {
+      const adjustedConfig = compensatePopupTransitionDelay(config, delayCompensationMs);
+      if (!element || !adjustedConfig) return Promise.resolve();
+      if (!adjustedConfig.secondAnimation) return playPopupBoxTransitionStage(element, adjustedConfig, board, rect, true);
+      const stages = [adjustedConfig, adjustedConfig.secondAnimation];
+      const durationMs = Math.max(...stages.map(stage =>
+        (Math.max(0, Number(stage.delay) || 0) + Math.max(0, Number(stage.duration) || 0)) * 1000
+      ));
+      const parallelConfig = {
+        ...adjustedConfig,
+        type: stages.some(stage => stage.type === "MotionPath") ? "MotionPath" : "Parallel",
+        delay: 0,
+        duration: durationMs / 1000,
+        easing: "Linear",
+        reverse: false,
+        _parallelStages: stages,
+        _parallelDurationMs: durationMs
+      };
+      return playPopupBoxTransitionStage(element, parallelConfig, board, rect, true);
+    }
+
+    function getPopupMotionPathOrigin(box, boxes) {
+      const boxCenter = {
+        x: Number(box.x) + Number(box.width) / 2,
+        y: Number(box.y) + Number(box.height) / 2
+      };
+      if (!box.groupId) return boxCenter;
+
+      const members = boxes.filter(member => member && member.groupId === box.groupId);
+      if (members.length < 2) return boxCenter;
+
+      let left = Infinity;
+      let top = Infinity;
+      let right = -Infinity;
+      let bottom = -Infinity;
+      for (const member of members) {
+        left = Math.min(left, Number(member.x));
+        top = Math.min(top, Number(member.y));
+        right = Math.max(right, Number(member.x) + Number(member.width));
+        bottom = Math.max(bottom, Number(member.y) + Number(member.height));
+      }
+      if (!(right > left) || !(bottom > top)) return boxCenter;
+      return { x: left + (right - left) / 2, y: top + (bottom - top) / 2 };
+    }
+
+    async function playPopupCustomizationAnimations(config, areaMarqueePromise, sequenceStartTime) {
+      const layer = document.getElementById("popupCustomLayer");
+      if (!layer || !config) return;
+      const rect = layer.getBoundingClientRect();
+      const boxes = Array.isArray(config.boxes) ? config.boxes : [];
+      const elements = Array.from(layer.querySelectorAll(".popup-custom-box"));
+      const cssDuration = getPopupCssAnimationDuration(layer);
+      const cssAnimation = cssDuration > 0 ? new Promise(resolve => setTimeout(resolve, cssDuration)) : Promise.resolve();
+      const playPhase = (phase, delayCompensationMs = 0) => Promise.all(elements.map(element => {
+        const box = boxes[Number(element.dataset.boxIndex)];
+        let transition = box ? (phase === "in" ? box.transitionIn : box.transitionOut) : null;
+        if (transition && (transition.type === "MotionPath" || transition.secondAnimation && transition.secondAnimation.type === "MotionPath")) {
+          const origin = getPopupMotionPathOrigin(box, boxes);
+          transition = {
+            ...transition,
+            _originX: origin.x,
+            _originY: origin.y
+          };
+        }
+        return playPopupBoxTransition(element, transition, phase, rect, boxes, delayCompensationMs);
+      }));
+      await Promise.all([playPhase("in"), cssAnimation, areaMarqueePromise || Promise.resolve()]);
+      const elapsedMs = Number.isFinite(sequenceStartTime) ? Math.max(0, performance.now() - sequenceStartTime) : 0;
+      const outDelays = boxes.flatMap(box => getPopupTransitionDelays(box && box.transitionOut));
+      const earliestOutDelayMs = outDelays.length ? Math.min(...outDelays) : 0;
+      // Shift the exit timeline uniformly so earlier waits don't collapse its stagger.
+      const delayCompensationMs = Math.min(elapsedMs, earliestOutDelayMs);
+      await playPhase("out", delayCompensationMs);
+    }
+
+    function finishPopupAlert(overlay, overlayImage) {
+      overlay.style.display = "none";
+      const layer = document.getElementById("popupCustomLayer");
+      if (layer && typeof layer.getAnimations === "function") {
+        layer.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+      }
+      overlayImage.style.opacity = "1";
+      try { overlayImage.src = ""; } catch (error) {}
+      setTimeout(() => {
+        if (alertQueue.length) {
+          triggerWarning(alertQueue.shift());
+        } else {
+          isOverlayActive = false;
+        }
+      }, 200);
+    }
+
+    function triggerWarning(opts) {
+      const {
+        audioSrc, eventText, areaDesc,
+        type, pds, emergency, destructive,
+        flashFloodConsiderable, flashFloodCatastrophic
+      } = opts;
+
+      const overlay            = document.getElementById("overlay");
+      let overlayImage         = document.getElementById("overlayImage");
+      const overlayAudio       = document.getElementById("overlayAudio");
+      const testWarningContainer = document.getElementById("testWarningContainer");
+      const testCountyContainer  = document.getElementById("testCountyContainer");
+
+      testWarningContainer.removeAttribute("style");
+      testCountyContainer.removeAttribute("style");
+      testWarningContainer.style.display = "";
+      testCountyContainer.style.display = "";
+      testWarningContainer.className = "text-container";
+      testCountyContainer.className  = "text-container";
+
+      // apply styling per type
+      if (type === "severe") {
+        testWarningContainer.classList.add("severe");
+        testCountyContainer.classList.add("severe");
+        if (destructive) {
+          testWarningContainer.classList.add("destructiveSevere");
+          testCountyContainer.classList.add("destructiveSevere");
+        } else if (opts.considerable) {
+          testWarningContainer.classList.add("considerableSevere");
+          testCountyContainer.classList.add("considerableSevere");
+        }
+      }
+      else if (type === "tornado") {
+        testWarningContainer.classList.add("tornado");
+        testCountyContainer.classList.add("tornado");
+        if (emergency) {
+          testWarningContainer.classList.add("tornadoEmergency");
+          testCountyContainer.classList.add("tornadoEmergency");
+        } else if (pds) {
+          testWarningContainer.classList.add("pdsTornado");
+          testCountyContainer.classList.add("pdsTornado");
+        }
+      }
+      else if (type === "flashFlood") {
+        testWarningContainer.classList.add("flashFlood");
+        testCountyContainer.classList.add("flashFlood");
+        if (flashFloodCatastrophic) {
+          testWarningContainer.classList.add("catastrophicFlashFlood");
+          testCountyContainer.classList.add("catastrophicFlashFlood");
+        } else if (flashFloodConsiderable) {
+          testWarningContainer.classList.add("considerableFlashFlood");
+          testCountyContainer.classList.add("considerableFlashFlood");
+        }
+      }
+      else if (type === "specialStatement") {
+        testWarningContainer.classList.add("specialStatement");
+        testCountyContainer.classList.add("specialStatement");
+      }
+      else if (type === "severeWatch") {
+        testWarningContainer.classList.add("severeWatch");
+        testCountyContainer.classList.add("severeWatch");
+      }
+      else if (type === "tornadoWatch") {
+        testWarningContainer.classList.add("tornadoWatch");
+        testCountyContainer.classList.add("tornadoWatch");
+      }
+      else if (type === "winterStorm") {
+        testWarningContainer.classList.add("winterStorm");
+        testCountyContainer.classList.add("winterStorm");
+      }
+      else if (type === "blizzard") {
+        testWarningContainer.classList.add("blizzard");
+        testCountyContainer.classList.add("blizzard");
+      }
+      else if (type === "tropicalStorm") {
+        testWarningContainer.classList.add("tropicalStorm");
+        testCountyContainer.classList.add("tropicalStorm");
+      }
+      else if (type === "hurricane") {
+        testWarningContainer.classList.add("hurricane");
+        testCountyContainer.classList.add("hurricane");
+      }
+      else if (type === "snowSquall") {
+        testWarningContainer.classList.add("snowSquall");
+        testCountyContainer.classList.add("snowSquall");
+      }
+      else if (type === "winterWatch") {
+        testWarningContainer.classList.add("winterWatch");
+        testCountyContainer.classList.add("winterWatch");
+      }
+
+      const popupCustomizationType = getPopupCustomizationType(opts);
+      const popupCustomization = popupCustomizationType && window.POPUP_ALERT_CUSTOMIZATIONS ?
+        window.POPUP_ALERT_CUSTOMIZATIONS[popupCustomizationType] : null;
+      const textVariant = /\bupgraded\b/i.test(eventText) ? "upgraded" : "normal";
+      const configuredAlertText = popupCustomization && popupCustomization.textOverrides &&
+        popupCustomization.textOverrides[textVariant];
+      const displayedEventText = typeof configuredAlertText === "string" && configuredAlertText.trim() ?
+        configuredAlertText.trim() : eventText;
+      renderPopupCustomization(popupCustomizationType, eventText, areaDesc, opts.concerning || "", Object.assign({}, opts.discussionFields || {}, {
+        watchProbability: opts.watchProbability,
+        mostProbablePeakTornadoIntensity: opts.mostProbablePeakTornadoIntensity,
+        mostProbablePeakWindGust: opts.mostProbablePeakWindGust,
+        alertFields: opts.alertFields || {}
+      }));
+
+      const hasCssCustomization = !!(popupCustomization && (
+        (Array.isArray(popupCustomization.boxes) && popupCustomization.boxes.length) ||
+        (popupCustomization.media && popupCustomization.media.src)
+      ));
+
+      if (!hasCssCustomization) {
+        finishPopupAlert(overlay, overlayImage);
+        return;
+      }
+
+      overlayImage.style.display = "none";
+      overlayImage.removeAttribute("src");
+
+      const selectedAudioSrc = popupCustomization && popupCustomization.audio &&
+        typeof popupCustomization.audio.src === "string" && popupCustomization.audio.src ?
+        popupCustomization.audio.src : audioSrc;
+      if (selectedAudioSrc) {
+        overlayAudio.src = selectedAudioSrc;
+        overlayAudio.play().catch(() => {});
+      } else {
+        overlayAudio.pause();
+        overlayAudio.src = "";
+      }
+
+      testWarningContainer.textContent = displayedEventText;
+      testCountyContainer.textContent  = areaDesc;
+      overlay.style.display = "flex";
+      const animationSequenceStartTime = performance.now();
+      const areaMarqueePromise = Promise.all([
+        startAlertAreaMarquee(testCountyContainer),
+        startPopupAreaMarquees(document.getElementById("popupCustomLayer"))
+      ]);
+
+      playPopupCustomizationAnimations(popupCustomization, areaMarqueePromise, animationSequenceStartTime)
+        .catch(error => console.warn("Popup transition animation failed.", error))
+        .finally(() => finishPopupAlert(overlay, overlayImage));
+    }
+
+    // Helper: Extract damage threats and detection from TropiTracker description
+    function extractThreatsFromDescription(desc) {
+      desc = desc || "";
+      return {
+        tornadoDetection:
+          /TORNADO\.\.\.(OBSERVED|RADAR INDICATED)/i.test(desc)
+            ? desc.match(/TORNADO\.\.\.(OBSERVED|RADAR INDICATED)/i)[1]
+            : null,
+        tornadoDamageThreatCatastrophic:
+          /TORNADO DAMAGE THREAT\.\.\.CATASTROPHIC/i.test(desc),
+        tornadoDamageThreatConsiderable:
+          /TORNADO DAMAGE THREAT\.\.\.CONSIDERABLE/i.test(desc),
+        thunderstormDamageThreatConsiderable:
+          /THUNDERSTORM DAMAGE THREAT\.\.\.CONSIDERABLE/i.test(desc),
+        thunderstormDamageThreatDestructive:
+          /THUNDERSTORM DAMAGE THREAT\.\.\.DESTRUCTIVE/i.test(desc),
+        flashFloodDamageThreat:
+          /FLASH FLOOD DAMAGE THREAT\.\.\.(CATASTROPHIC|CONSIDERABLE)/i.test(desc)
+            ? desc.match(/FLASH FLOOD DAMAGE THREAT\.\.\.(CATASTROPHIC|CONSIDERABLE)/i)[1]
+            : null
+      };
+    }
+
+    // Helper: Extract damage threats and detection from Atom API parameters
+    function extractThreatsFromAtom(entry) {
+      const parameters = Array.from(entry.getElementsByTagName("cap:parameter"));
+      let tornadoDetection = null,
+          tornadoDamageThreatCatastrophic = false,
+          tornadoDamageThreatConsiderable = false,
+          thunderstormDamageThreatConsiderable = false,
+          thunderstormDamageThreatDestructive = false,
+          flashFloodDamageThreat = null;
+
+      parameters.forEach(p => {
+        const name = p.querySelector("valueName")?.textContent || "";
+        const val  = p.querySelector("value")?.textContent || "";
+        if (name === "tornadoDetection") {
+          tornadoDetection = val;
+        }
+        if (name === "tornadoDamageThreat") {
+          if (val === "CATASTROPHIC") tornadoDamageThreatCatastrophic = true;
+          if (val === "CONSIDERABLE") tornadoDamageThreatConsiderable = true;
+        }
+        if (name === "thunderstormDamageThreat") {
+          if (val === "CONSIDERABLE") thunderstormDamageThreatConsiderable = true;
+          if (val === "DESTRUCTIVE") thunderstormDamageThreatDestructive = true;
+        }
+        if (name === "flashFloodDamageThreat") {
+          if (val === "CATASTROPHIC" || val === "CONSIDERABLE") flashFloodDamageThreat = val;
+        }
+      });
+
+      return {
+        tornadoDetection,
+        tornadoDamageThreatCatastrophic,
+        tornadoDamageThreatConsiderable,
+        thunderstormDamageThreatConsiderable,
+        thunderstormDamageThreatDestructive,
+        flashFloodDamageThreat
+      };
+    }
+
+    // Fetch alerts from TropiTracker API (primary + all)
+    async function fetchTropiTrackerAlerts() {
+      try {
+        const urls = [
+          "",
+          ""
+        ];
+        let allAlerts = [];
+        for (const url of urls) {
+          const resp = await fetch(url);
+          const data = await resp.json();
+          if (data.items && data.items.length) {
+            allAlerts = allAlerts.concat(data.items);
+          }
+        }
+        // Deduplicate by alert_id
+        const seen = new Set();
+        const deduped = [];
+        for (const item of allAlerts) {
+          const key = item.alert_id || `${item.event}|${item.areaDesc}|${item.expires}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            deduped.push(item);
+          }
+        }
+        // Map to unified alert objects with threat extraction
+        return deduped.map(item => ({
+          id: item.alert_id || undefined, // <--- ensure id present
+          event: item.event || "",
+          areaDesc: item.areaDesc || "",
+          expires: item.expires || "",
+          description: item.description || "",
+          threats: extractThreatsFromDescription(item.description || "")
+        }));
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Fetch alerts from NWS API (old fallback)
+    async function fetchNWSAlerts() {
+      try {
+        const resp = await fetch("https://api.weather.gov/alerts/active.atom");
+        const str = await resp.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(str, "application/xml");
+        const entries = Array.from(xml.getElementsByTagName("entry"));
+        return entries.map(entry => {
+          const eventEl = entry.querySelector("cap\\:event") || entry.querySelector("event");
+          const areaEl  = entry.querySelector("cap\\:areaDesc") || entry.querySelector("areaDesc");
+          const descEl  = entry.querySelector("summary") || entry.querySelector("description");
+          const idEl    = entry.querySelector("cap\\:identifier") || entry.querySelector("id");
+          return {
+            id: idEl ? (idEl.textContent || "").trim() : undefined, // <--- extract identifier
+            event: eventEl ? eventEl.textContent.trim() : "",
+            areaDesc: areaEl ? areaEl.textContent.trim() : "",
+            expires: entry.querySelector("cap\\:expires")?.textContent || "",
+            description: descEl ? descEl.textContent : "",
+            threats: extractThreatsFromAtom(entry)
+          };
+        });
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Main pollAlerts logic: try TropiTracker, fallback to NWS
+    async function pollAlerts() {
+      if (isOverlayActive) {
+        setTimeout(pollAlerts, 0);
+        return;
+      }
+
+      let alerts = await fetchTropiTrackerAlerts();
+      if (!alerts.length) {
+        alerts = await fetchNWSAlerts();
+      }
+      if (!alerts.length) {
+        setTimeout(pollAlerts, 1000);
+        return;
+      }
+
+      const currentFeedKeys    = new Set();
+      const processedThisCycle = new Set();
+
+      alerts.forEach(alert => {
+        const eventTextRaw = alert.event || "";
+        const areaDesc     = alert.areaDesc || "";
+        const expireDate   = alert.expires || "";
+        const threats      = alert.threats;
+
+        const groups = [formatAreaDesc(areaDesc)];
+
+        // SEVERE THUNDERSTORM WARNING
+        if (eventTextRaw.toLowerCase().includes("severe thunderstorm warning")) {
+          const baseEventText = "Severe Thunderstorm Warning";
+          let currentThreat = "DEFAULT";
+          if (threats.thunderstormDamageThreatDestructive) currentThreat = "DESTRUCTIVE";
+          else if (threats.thunderstormDamageThreatConsiderable) currentThreat = "CONSIDERABLE";
+
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id); // <--- pass id
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedSevereAlerts[key];
+            if (initialLoad) {
+              issuedSevereAlerts[key] = {
+                state: currentThreat,
+                queued: false,
+                lastDisplayed: currentThreat
+              };
+            } else if (!record) {
+              const text = currentThreat==="DESTRUCTIVE"
+                           ? "PDS Severe Thunderstorm Warning - Destructive"
+                           : currentThreat==="CONSIDERABLE"
+                             ? "Severe Thunderstorm Warning – Considerable"
+                             : "Severe Thunderstorm Warning";
+              const img  = currentThreat==="DESTRUCTIVE"
+                           ? "PDS SVR.gif"
+                           : currentThreat==="CONSIDERABLE"
+                             ? "SVR - Considerable.gif"
+                             : "SVR.gif";
+              const aud  = currentThreat==="DESTRUCTIVE" ? "PDS SVR.mp3" : "SVR.mp3";
+
+              enqueueAlert({
+                alertKey: key,
+                imageSrc: img,
+                audioSrc: aud,
+                eventText: text,
+                areaDesc: group,
+                type: "severe",
+                state: currentThreat,
+                destructive: currentThreat==="DESTRUCTIVE",
+                considerable: currentThreat==="CONSIDERABLE"
+              });
+              issuedSevereAlerts[key] = {
+                state: currentThreat,
+                queued: true,
+                lastDisplayed: currentThreat
+              };
+            } else if (record.lastDisplayed !== currentThreat) {
+              const text = currentThreat==="DESTRUCTIVE"
+                           ? "PDS Severe Thunderstorm Warning - Destructive Upgraded"
+                           : currentThreat==="CONSIDERABLE"
+                             ? "Severe Thunderstorm Warning – Considerable Upgraded"
+                             : "Severe Thunderstorm Warning";
+              const img  = currentThreat==="DESTRUCTIVE"
+                           ? "PDS SVR.gif"
+                           : currentThreat==="CONSIDERABLE"
+                             ? "SVR - Considerable.gif"
+                             : "SVR.gif";
+              const aud  = currentThreat==="DESTRUCTIVE" ? "PDS SVR.mp3" : "SVR.mp3";
+
+              enqueueAlert({
+                alertKey: key,
+                imageSrc: img,
+                audioSrc: aud,
+                eventText: text,
+                areaDesc: group,
+                type: "severe",
+                state: currentThreat,
+                destructive: currentThreat==="DESTRUCTIVE",
+                considerable: currentThreat==="CONSIDERABLE",
+                force: true
+              });
+              record.lastDisplayed = currentThreat;
+            }
+          });
+        }
+
+        // TORNADO WARNING
+        else if (eventTextRaw.toLowerCase().includes("tornado warning")) {
+          const baseEventText = "Tornado Warning";
+          let currentState = "DEFAULT";
+          if (threats.tornadoDetection === "OBSERVED" && threats.tornadoDamageThreatCatastrophic) {
+            currentState = "EMERGENCY";
+          } else if (
+            (threats.tornadoDetection === "OBSERVED" || threats.tornadoDetection === "RADAR INDICATED") &&
+            threats.tornadoDamageThreatConsiderable
+          ) {
+            currentState = "PDS";
+          } else if (threats.tornadoDetection === "OBSERVED") {
+            currentState = "OBSERVED";
+          }
+
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id); // <--- pass id
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedTornadoAlerts[key];
+            if (initialLoad) {
+              issuedTornadoAlerts[key] = {
+                state: currentState,
+                queued: false,
+                lastDisplayed: currentState
+              };
+            } else if (!record) {
+              let text, img, aud, pds=false, em=false;
+              if (currentState==="EMERGENCY") {
+                em = true; text = "Tornado Emergency"; img = "TORE.gif"; aud = "TORE.mp3";
+              } else if (currentState==="PDS") {
+                pds = true; text = "PDS Tornado Warning"; img = "PDS TOR.gif"; aud = "PDS TOR.mp3";
+              } else if (currentState==="OBSERVED") {
+                text = "Observed Tornado Warning"; img = "TOR.gif"; aud = "TOR.mp3";
+              } else {
+                text = "Tornado Warning"; img = "TOR.gif"; aud = "TOR.mp3";
+              }
+
+              enqueueAlert({
+                alertKey: key,
+                imageSrc: img,
+                audioSrc: aud,
+                eventText: text,
+                areaDesc: group,
+                type: "tornado",
+                state: currentState,
+                pds,
+                emergency: em
+              });
+              issuedTornadoAlerts[key] = {
+                state: currentState,
+                queued: true,
+                lastDisplayed: currentState
+              };
+            } else if (record.lastDisplayed !== currentState) {
+              let text, img, aud, pds=false, em=false;
+              if (currentState==="EMERGENCY") {
+                em = true; text = "Tornado Emergency Upgraded"; img = "TORE.gif"; aud = "TORE Upgraded.mp3";
+              } else if (currentState==="PDS") {
+                pds = true; text = "PDS Tornado Warning Upgraded"; img = "PDS TOR.gif"; aud = "PDS TOR - TOR Upgraded.mp3";
+              } else if (currentState==="OBSERVED") {
+                text = "Observed Tornado Warning Upgraded"; img = "TOR.gif"; aud = "PDS TOR - TOR Upgraded.mp3";
+              } else {
+                text = "Tornado Warning"; img = "TOR.gif"; aud = "TOR.mp3";
+              }
+
+              enqueueAlert({
+                alertKey: key,
+                imageSrc: img,
+                audioSrc: aud,
+                eventText: text,
+                areaDesc: group,
+                type: "tornado",
+                state: currentState,
+                pds,
+                emergency: em,
+                force: true
+              });
+              record.lastDisplayed = currentState;
+            }
+          });
+        }
+
+        // FLASH FLOOD WARNING
+        else if (eventTextRaw.toLowerCase().includes("flash flood warning")) {
+          const baseEventText = "Flash Flood Warning";
+          let currentFF = "DEFAULT";
+          if (threats.flashFloodDamageThreat === "CATASTROPHIC") currentFF = "CATASTROPHIC";
+          else if (threats.flashFloodDamageThreat === "CONSIDERABLE") currentFF = "CONSIDERABLE";
+
+          groups.forEach(group => {
+            const key = generateAlertKey(baseEventText, group, alert.id); // <--- pass id
+            if (processedThisCycle.has(key)) return;
+            processedThisCycle.add(key);
+            currentFeedKeys.add(key);
+
+            const record = issuedFlashFloodAlerts[key];
+            if (initialLoad) {
+              issuedFlashFloodAlerts[key] = {
+                state: currentFF,
+                queued: false,
+                lastDisplayed: currentFF
+              };
+            } else if (!record) {
+              let text, img, aud;
+              if (currentFF==="CATASTROPHIC") {
+                text = "Flash Flood Emergency"; img = "FFWE.gif"; aud = "FFWE.mp3";
+              } else if (currentFF==="CONSIDERABLE") {
+                text = "Flash Flood Warning - Considerable"; img = "FFW - Considerable.gif"; aud = "FFW - Considerable.mp3";
+              } else {
+                text = "Flash Flood Warning"; img = "FFW.gif"; aud = "FFW.mp3";
+              }
+
+              enqueueAlert({
+                alertKey: key,
+                imageSrc: img,
+                audioSrc: aud,
+                eventText: text,
+                areaDesc: group,
+                type: "flashFlood",
+                state: currentFF,
+                flashFloodConsiderable: currentFF==="CONSIDERABLE",
+                flashFloodCatastrophic: currentFF==="CATASTROPHIC"
+              });
+              issuedFlashFloodAlerts[key] = {
+                state: currentFF,
+                queued: true,
+                lastDisplayed: currentFF
+              };
+            } else if (record.lastDisplayed !== currentFF) {
+              let text, img, aud;
+              if (currentFF==="CATASTROPHIC") {
+                text = "Flash Flood Emergency Upgraded"; img = "FFWE.gif"; aud = "FFWE Upgraded.mp3";
+              } else if (currentFF==="CONSIDERABLE") {
+                text = "Flash Flood Warning - Considerable Upgraded"; img = "FFW - Considerable.gif"; aud = "FFW - Considerable Upgraded.mp3";
+              }
+
+              enqueueAlert({
+                alertKey: key,
+                imageSrc: img,
+                audioSrc: aud,
+                eventText: text,
+                areaDesc: group,
+                type: "flashFlood",
+                state: currentFF,
+                flashFloodConsiderable: currentFF==="CONSIDERABLE",
+                flashFloodCatastrophic: currentFF==="CATASTROPHIC",
+                force: true
+              });
+              record.lastDisplayed = currentFF;
+            }
+          });
+        }
+      });
+
+      // cleanup vanished alerts
+      [
+        issuedSevereAlerts,
+        issuedTornadoAlerts,
+        issuedFlashFloodAlerts
+      ].forEach(map => {
+        for (let k in map) {
+          if (!currentFeedKeys.has(k)) delete map[k];
+        }
+      });
+
+      if (!initialLoad && !isOverlayActive && alertQueue.length) {
+        processNextAlert();
+      }
+      if (initialLoad) {
+        initialLoad = false;
+      }
+      setTimeout(pollAlerts, 1000);
+    }
+
+    pollAlerts();
+
+    const alertConfigs = {
+      severe: {
+        imageSrc: "SVR.gif",
+        audioSrc: "SVR.mp3",
+        eventText: "Severe Thunderstorm Warning",
+        areaDesc: "Sample County, State",
+        type: "severe"
+      },
+      severe_considerable: {
+        imageSrc: "SVR - Considerable.gif",
+        audioSrc: "SVR.mp3",
+        eventText: "Severe Thunderstorm Warning – Considerable",
+        areaDesc: "Sample County, State",
+        type: "severe",
+        considerable: true
+      },
+      severe_destructive: {
+        imageSrc: "PDS SVR.gif",
+        audioSrc: "PDS SVR.mp3",
+        eventText: "PDS Severe Thunderstorm Warning - Destructive",
+        areaDesc: "Sample County, State",
+        type: "severe",
+        destructive: true
+      },
+      tornado: {
+        imageSrc: "TOR.gif",
+        audioSrc: "TOR.mp3",
+        eventText: "Tornado Warning",
+        areaDesc: "Sample County, State",
+        type: "tornado"
+      },
+      tornado_observed: {
+        imageSrc: "TOR.gif",
+        audioSrc: "TOR.mp3",
+        eventText: "Observed Tornado Warning",
+        areaDesc: "Sample County, State",
+        type: "tornado",
+        state: "OBSERVED"
+      },
+      tornado_pds: {
+        imageSrc: "PDS TOR.gif",
+        audioSrc: "PDS TOR.mp3",
+        eventText: "PDS Tornado Warning",
+        areaDesc: "Sample County, State",
+        type: "tornado",
+        pds: true
+      },
+      tornado_emergency: {
+        imageSrc: "TORE.gif",
+        audioSrc: "TORE.mp3",
+        eventText: "Tornado Emergency",
+        areaDesc: "Sample County, State",
+        type: "tornado",
+        emergency: true
+      },
+      flashflood: {
+        imageSrc: "FFW.gif",
+        audioSrc: "FFW.mp3",
+        eventText: "Flash Flood Warning",
+        areaDesc: "Sample County, State",
+        type: "flashFlood"
+      },
+      flashflood_considerable: {
+        imageSrc: "FFW - Considerable.gif",
+        audioSrc: "FFW - Considerable.mp3",
+        eventText: "Flash Flood Warning - Considerable",
+        areaDesc: "Sample County, State",
+        type: "flashFlood",
+        flashFloodConsiderable: true
+      },
+      flashflood_catastrophic: {
+        imageSrc: "FFWE.gif",
+        audioSrc: "FFWE.mp3",
+        eventText: "Flash Flood Emergency",
+        areaDesc: "Sample County, State",
+        type: "flashFlood",
+        flashFloodCatastrophic: true
+      },
+      special_statement: {
+        imageSrc: "SWS.gif",
+        audioSrc: "SWS.mp3",
+        eventText: "Special Weather Statement",
+        areaDesc: "Sample County, State",
+        type: "specialStatement"
+      },
+      severe_watch: {
+        imageSrc: "SVA.gif",
+        audioSrc: "SVA.mp3",
+        eventText: "Severe Thunderstorm Watch",
+        areaDesc: "Sample County, State",
+        type: "severeWatch"
+      },
+      tornado_watch: {
+        imageSrc: "TOA.gif",
+        audioSrc: "TOA.mp3",
+        eventText: "Tornado Watch",
+        areaDesc: "Sample County, State",
+        type: "tornadoWatch"
+      },
+      winter_storm: {
+        imageSrc: "WSW.gif",
+        audioSrc: "WSW.mp3",
+        eventText: "Winter Storm Warning",
+        areaDesc: "Sample County, State",
+        type: "winterStorm"
+      },
+      blizzard: {
+        imageSrc: "BZW.gif",
+        audioSrc: "BZW.mp3",
+        eventText: "Blizzard Warning",
+        areaDesc: "Sample County, State",
+        type: "blizzard"
+      },
+      tropical_storm: {
+        imageSrc: "TSW.gif",
+        audioSrc: "TSW.mp3",
+        eventText: "Tropical Storm Warning",
+        areaDesc: "Sample County, State",
+        type: "tropicalStorm"
+      },
+      hurricane: {
+        imageSrc: "HUW.gif",
+        audioSrc: "HUW.mp3",
+        eventText: "Hurricane Warning",
+        areaDesc: "Sample County, State",
+        type: "hurricane"
+      },
+      snow_squall: {
+        imageSrc: "SQW.gif",
+        audioSrc: "SQW.mp3",
+        eventText: "Snow Squall Warning",
+        areaDesc: "Sample County, State",
+        type: "snowSquall"
+      },
+      winter_watch: {
+        imageSrc: "WSA.gif",
+        audioSrc: "WSA.mp3",
+        eventText: "Winter Storm Watch",
+        areaDesc: "Sample County, State",
+        type: "winterWatch"
+      },
+      dust_advisory: {
+        eventText: "Dust Advisory",
+        areaDesc: "Sample County, State",
+        type: "custom",
+        customizationType: "Dust Advisory"
+      },
+      dust_storm: {
+        imageSrc: "DSW.gif",
+        audioSrc: "DSW.mp3",
+        eventText: "Dust Storm Warning",
+        areaDesc: "Sample County, State",
+        type: "dustStorm"
+      },
+      dust_storm_pds: {
+        imageSrc: "DSW.gif",
+        audioSrc: "DSW.mp3",
+        eventText: "PDS Dust Storm Warning",
+        areaDesc: "Sample County, State",
+        type: "dustStorm",
+        pds: true
+      },
+      special_marine_warning: {
+        eventText: "Special Marine Warning",
+        areaDesc: "Sample County, State",
+        type: "custom",
+        customizationType: "Special Marine Warning"
+      },
+      mesoscale_discussion: {
+        eventText: "Mesoscale Discussion",
+        areaDesc: "Parts of coastal Washington",
+        concerning: "Severe potential...Watch unlikely",
+        watchProbability: "5 percent",
+        mostProbablePeakTornadoIntensity: "UP TO 90 MPH",
+        mostProbablePeakWindGust: "55-70 MPH",
+        type: "mesoscaleDiscussion"
+      },
+      mesoscale_precipitation_discussion: {
+        eventText: "Mesoscale Percipitation Discussion",
+        areaDesc: "Northeast NC....Eastern VA...Southern & Eastern",
+        concerning: "Heavy rainfall...Flash flooding possible",
+        watchProbability: "",
+        mostProbablePeakTornadoIntensity: "",
+        mostProbablePeakWindGust: "",
+        type: "mesoscalePrecipitationDiscussion"
+      }
+    };
+
+    const testButtonGroup = document.querySelector(".button-group");
+    const existingCustomizationTypes = new Set(
+      Object.values(alertConfigs)
+        .map(config => getPopupCustomizationType(config))
+        .filter(Boolean)
+        .map(alertType => alertType.trim().toLowerCase())
+    );
+    Object.keys(window.POPUP_ALERT_CUSTOMIZATIONS || {}).forEach(alertType => {
+      if (existingCustomizationTypes.has(alertType.trim().toLowerCase())) return;
+
+      const configKey = `custom:${alertType}`;
+      alertConfigs[configKey] = {
+        eventText: alertType,
+        areaDesc: "Sample County, State",
+        type: "custom",
+        customizationType: alertType
+      };
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = alertType;
+      button.addEventListener("click", () => showAlert(configKey));
+      testButtonGroup.appendChild(button);
+    });
+
+    function setTestMode(mode, button) {
+      testAsUpgraded = (mode === 'upgraded');
+      document.querySelectorAll('.test-buttons button').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+    }
+
+    function getUpgradedAudio(type, cfg) {
+      if (type === 'tornado') {
+        if (cfg.emergency) return 'TORE Upgraded.mp3';
+        return 'PDS TOR - TOR Upgraded.mp3';
+      }
+      if (type === 'flashFlood') {
+        if (cfg.flashFloodCatastrophic) return 'FFWE Upgraded.mp3';
+        if (cfg.flashFloodConsiderable) return 'FFW - Considerable Upgraded.mp3';
+        return cfg.audioSrc;
+      }
+      return cfg.audioSrc;
+    }
+
+    function getRandomTestAlertFields(cfg) {
+      const sampleValues = {
+        MaxHailSize: ["0.75 IN", "1.25 IN", "2.00 IN"],
+        TornadoDamageThreat: ["CONSIDERABLE", "CATASTROPHIC"],
+        Tornado: ["RADAR INDICATED", "OBSERVED"],
+        FlashFlood: ["FLASH FLOOD", "FLASH FLOODING"],
+        FlashFloodDamageThreat: ["CONSIDERABLE", "CATASTROPHIC"],
+        ThunderstormDamageThreat: ["CONSIDERABLE", "DESTRUCTIVE"],
+        MaxWindGust: ["60 MPH", "75 MPH", "90 MPH"],
+        WindThreat: ["CONSIDERABLE", "DESTRUCTIVE"],
+        HailThreat: ["CONSIDERABLE", "DESTRUCTIVE"],
+        Hazard: ["TORNADO", "FLASH FLOOD", "DAMAGING WIND"],
+        Source: ["RADAR INDICATED", "TRAINED SPOTTER", "LAW ENFORCEMENT"],
+        Impact: ["DANGEROUS CONDITIONS", "SIGNIFICANT DAMAGE", "LIFE-THREATENING"]
+      };
+      const fields = Object.fromEntries(Object.entries(sampleValues).map(([field, values]) => [
+        field,
+        values[Math.floor(Math.random() * values.length)]
+      ]));
+      if (cfg.type === "tornado") {
+        fields.MaxWindGust = "";
+        fields.MaxHailSize = "2.00 IN";
+        fields.TornadoDamageThreat = cfg.emergency ? "CATASTROPHIC" : cfg.pds ? "CONSIDERABLE" : "";
+        if (cfg.emergency) {
+          fields.Tornado = "Observed";
+          fields.Hazard = "Deadly Tornado";
+          fields.Source = "Law Enforcement confirmed tornado";
+          fields.Impact = "You're in a life-threatening situation. Flying debris may be deadly to those caught without shelter. Mobile homes will be destroyed. Considerable damage to homes, businesses, and vehicles is likely and complete destruction is possible.";
+        } else if (cfg.pds) {
+          fields.Tornado = "Observed";
+          fields.Hazard = "Damaging Tornado";
+          fields.Source = "Law Enforcement confirmed tornado";
+          fields.Impact = "You're in a life-threatening situation. Flying debris may be deadly to those caught without shelter. Mobile homes will be destroyed. Considerable damage to homes, businesses, and vehicles is likely and complete destruction is possible.";
+        } else if (cfg.state === "OBSERVED") {
+          fields.Tornado = "Observed";
+          fields.Hazard = "Damaging Tornado";
+          fields.Source = "Law Enforcement confirmed tornado";
+          fields.Impact = "Flying Debris will be dangerous to those caught without shelter.";
+        } else {
+          fields.Tornado = "Radar Indicated";
+          fields.Hazard = "Tornado";
+          fields.Source = "Radar Indicated";
+          fields.Impact = "Flying Debris will be dangerous to those caught without shelter.";
+        }
+      } else if (cfg.type === "flashFlood") {
+        fields.FlashFloodDamageThreat = cfg.flashFloodCatastrophic ? "CATASTROPHIC" : cfg.flashFloodConsiderable ? "CONSIDERABLE" : "";
+        fields.Hazard = cfg.flashFloodCatastrophic || cfg.flashFloodConsiderable ?
+          "Life-threatening flash flooding" : "Flash flooding caused by thunderstorms";
+        fields.Source = "Radar";
+        fields.Impact = cfg.flashFloodCatastrophic ?
+          "This is a PARTICULARLY DANGEROUS SITUATION. SEEK HIGHER GROUND NOW! Life-threatening flash flooding of low water crossings, small creeks and streams, urban areas, highways, streets and underpasses." :
+          cfg.flashFloodConsiderable ?
+            "Life-threatening flash flooding of creeks and streams, urban areas, highways, streets and underpasses." :
+            "Flash flooding of small creeks and streams, urban areas, highways, streets and underpasses as well as other poor drainage and low-lying areas.";
+      } else if (cfg.type === "severe") {
+        fields.ThunderstormDamageThreat = cfg.destructive ? "DESTRUCTIVE" : cfg.considerable ? "CONSIDERABLE" : "";
+        fields.Source = "Radar Indicated";
+        fields.Hazard = "";
+        if (cfg.destructive) {
+          fields.MaxWindGust = "90 MPH";
+          fields.MaxHailSize = "2.75 IN";
+          fields.Impact = "You are in a life-threatening situation. Flying debris may be deadly to those caught without shelter. Mobile homes will be heavily damaged or destroyed. Homes and businesses will have substantial roof and window damage. Expect extensive tree damage and power outages.";
+        } else if (cfg.considerable) {
+          fields.MaxWindGust = "70 MPH";
+          fields.MaxHailSize = "1.75 IN";
+          fields.Impact = "Minor damage to vehicles is possible. Expect considerable tree damage. Wind damage is also likely to mobile homes, roofs, and outbuildings.";
+        } else {
+          fields.MaxWindGust = "60 MPH";
+          fields.MaxHailSize = "1.25 IN";
+          fields.Impact = "Expect damage to trees and powerlines.";
+        }
+      } else if (cfg.type === "dustStorm") {
+        fields.Hazard = "Less than a quarter mile visibility with strong wind in excess of 50 mph.";
+        fields.Source = "Doppler radar.";
+        fields.Impact = "Dangerous life-threatening travel.";
+      } else if (cfg.type === "snowSquall") {
+        fields.Hazard = "Flash freeze on roads and whiteout conditions with near zero visibility due to intense bursts of heavy snow and gusty winds. Wind gusts greater than 35 mph.";
+        fields.Source = "Public reported.";
+        fields.Impact = "Dangerous and life-threatening travel conditions are expected to develop rapidly in the warning area.";
+      } else if (cfg.customizationType === "Special Marine Warning") {
+        fields.Hazard = "Waterspouts, wind gusts to 40 knots, and small hail.";
+        fields.Source = "Radar.";
+        fields.Impact = "Waterspouts can easily overturn boats and create locally hazardous seas. Small craft could be damaged in briefly higher winds and suddenly higher waves.";
+      }
+      return fields;
+    }
+
+    function showAlert(type) {
+      const cfg = alertConfigs[type];
+      if (!cfg) return;
+
+      let eventText = cfg.eventText;
+      let audioSrc = cfg.audioSrc;
+      if (testAsUpgraded) {
+        eventText += " Upgraded";
+        audioSrc = getUpgradedAudio(cfg.type, cfg);
+      }
+
+      alertQueue.push({ ...cfg, eventText, audioSrc, alertFields: getRandomTestAlertFields(cfg) });
+      if (!isOverlayActive) processNextAlert();
+    }
+  </script>
+</body>
+</html>
