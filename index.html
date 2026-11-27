@@ -1,205 +1,84 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Warnverlay</title>
-  <!-- Load Bebas Neue font from Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warnverlay Overlay History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+</head>
+<body>
+    <P>on April 24th 2025 the first warnverlay pre-release was made. they added only  780p, 1080p, 1440p, and 4K resolutions. but no popup alerts were included.</P>
+    <a href="pre.html" class="resolution">Back to Pre-release</a>
+    <p>on May 13th 2025 the popup alerts were FINALLY added. and warnverlay was fully released.</p>
+    <a href="full.html" class="resolution">Back to Full Release</a>
+    <p>on verison 1.2 the test popup alerts and video tutorial and were added. and a new background was implemented. SO NO MORE WHITE BACKGROUND AND BUTTONS.</p>
+    <a href="V1.2.html" class="resolution">Back to Version 1.2</a>
+    <p>version 2 came out in November 2025 with the US Alert Map was added.</p>
+    <a href="v2.0.html" class="resolution">Back to Version 2.0</a>
+    <p>on January 8 2026 the UI was completely redesigned. and the canadian alert 1080p (not a map) resolution was added.</p>
+    <a href="v2.2.html" class="resolution">Back to Version 2.2</a>
+    <p>on May 11 2026 a new version was in the works. VERSION 3 BETA.</p>
+    <P>on may 15 2026 we got our first sneek peeks that will allow us to customize the popup alerts and make our own.</P>
+    <p> on june 17 2026 the VERSION 3 BETA was released YAY.</p>
+    <a href="V3Beta.html" class="resolution">Back to Version 3 Beta</a>
+    <P>there were a few bugs with the custom apis but they got fixed.</P>
+    <p>August 11 2026 a new update was released.</p>
+    <p>new apis were added.</p>
+    <p>on the day of 9/11 2026 a new update was released.</p>
+    <p>on november 8th 2026 we got a sneek peak on the new popup alerts. adding more alerts like SWS, STW "special weather statement", TW "Tornado Watch", WSW, BW, TSW, HW, SSW, and WSW "Winter storm watch". and a new popup alert overlay.</p>
+    <p>thats all we have for now. check back soon when the next update is released!</p>
+    <p>if you want to use warnverlay heres the link</p>
+    <a href="https://redbird20102.github.io/Warnverlay/" class="resolution">Back to Warnverlay</a>
+</body>
+<style>
     body {
       font-family: 'Bebas Neue', sans-serif;
       text-align: center;
-      background: linear-gradient(135deg, #000000 0%, #4b0000 100%);
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      background-size: cover;
+      background: linear-gradient(135deg, #2c0000 0%, #660000 100%);
       margin: 0;
       padding: 2em;
-      box-sizing: border-box;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
     }
     h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 3em;
-      color: #ffffff;
+      color: #ff4d4d;
       margin-bottom: 0.5em;
-      text-shadow: 0 0 30px #ff0000, 0 0 30px #660000;
+      text-shadow: 0 0 10px #ff4d4d, 0 0 20px #660000;
     }
     p {
-      font-size: 2.2em;
+      font-size: 1.2em;
       color: #fff;
-      text-shadow: 0 0 40px #ff0000;
-      font-weight: bold;
+      text-shadow: 0 0 5px #660000;
     }
     .resolution-container {
       margin-top: 1em;
       display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
+      flex-direction: column;
+      align-items: center;
     }
     .resolution {
       display: block;
-      width: 320px;
-      box-sizing: border-box;
-      padding: 30px;
-      margin: 0;
-      background: linear-gradient(135deg, #3f0000 60%, #ff0000 100%);
-      border: 3px solid #ff4d4d;
+      width: 220px;
+      padding: 12px;
+      margin: 10px 0;
+      background: linear-gradient(135deg, #800000 60%, #ff4d4d 100%);
+      border: 2px solid #ff4d4d;
       text-decoration: none;
       color: #fff;
-      font-size: 1.7em;
+      font-size: 1.3em;
       font-family: 'Bebas Neue', sans-serif;
       font-weight: bold;
       letter-spacing: 1px;
       box-shadow: 0 0 10px #660000, 0 0 20px #ff4d4d33;
       transition: background 0.3s, color 0.3s, box-shadow 0.3s;
       cursor: pointer;
-      border-radius: 15px;
+      border-radius: 8px;
     }
     .resolution:hover {
-      background: linear-gradient(135deg, #000000 60%, #5c0000 100%);
+      background: linear-gradient(135deg, #ff4d4d 60%, #800000 100%);
       color: #fff;
       box-shadow: 0 0 20px #ff4d4d, 0 0 40px #66000099;
       border-color: #fff;
     }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      backdrop-filter: blur(4px);
-    }
-    .modal-box {
-      width: min(90%, 580px);
-      padding: 28px;
-      background: rgba(20, 0, 0, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 24px;
-      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
-      text-align: left;
-      color: #f7e4c1;
-      backdrop-filter: blur(12px);
-      position: relative;
-      overflow: hidden;
-    }
-    .modal-box::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top right, rgba(255, 128, 64, 0.18), transparent 45%);
-      pointer-events: none;
-    }
-    .modal-box h2 {
-      margin-top: 0;
-      margin-bottom: 0.8em;
-      font-size: 2rem;
-      letter-spacing: 1px;
-      color: #ffd36a;
-      text-shadow: 0 0 18px rgba(255, 211, 106, 0.55);
-    }
-    .modal-box p {
-      margin: 0 0 1.4em;
-      line-height: 1.65;
-      color: #f6f0e7;
-      font-size: 2rem;
-      letter-spacing: 0.02em;
-    }
-    .modal-close {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 14px 26px;
-      background: linear-gradient(135deg, #ff6b6b, #ff2f2f);
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-family: 'Bebas Neue', sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 14px 30px rgba(255, 77, 77, 0.25);
-      position: relative;
-      z-index: 1;
-    }
-    .modal-close:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 18px 36px rgba(255, 77, 77, 0.35);
-    }
-    .modal-close:focus {
-      outline: none;
-      box-shadow: 0 0 0 4px rgba(255, 73, 73, 0.35);
-    }
-  </style>
-</head>
-<body>
-  <div class="modal-backdrop" id="updateModal">
-    <div class="modal-box">
-      <h2>Major Update!</h2>
-      <p>Pop Up Alerts are here! Visit the Pop Up Alerts Creator to make your own. We've also fixed several bugs in the editors. Enjoy!</p>
-      <button class="modal-close" onclick="closeUpdateModal()">I've Seen It</button>
-    </div>
-  </div>
-  <script>
-    const UPDATE_MODAL_VERSION = '2026-11-26';
-    const UPDATE_MODAL_KEY = `warnverlayOverlayCreatorUpdateDismissed-${UPDATE_MODAL_VERSION}`;
-
-    function closeUpdateModal() {
-      const modal = document.getElementById('updateModal');
-      if (modal) {
-        modal.style.display = 'none';
-        try {
-          localStorage.setItem(UPDATE_MODAL_KEY, 'true');
-        } catch (error) {
-          console.warn('Unable to save modal dismissal:', error);
-        }
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      let dismissed = false;
-      try {
-        dismissed = localStorage.getItem(UPDATE_MODAL_KEY) === 'true';
-      } catch (error) {
-        console.warn('Unable to read modal dismissal:', error);
-      }
-      if (dismissed) {
-        const modal = document.getElementById('updateModal');
-        if (modal) {
-          modal.style.display = 'none';
-        }
-      }
-    });
-  </script>
-  <h1>Welcome to Warnverlay Version 3 BETA</h1>
-  <p>select the Resolution below</p>
-  <div class="resolution-container">
-    <a href="720p.html" class="resolution">720p</a>
-    <a href="1080p.html" class="resolution">1080p</a>
-    <a href="1440p.html" class="resolution">1440p</a>
-    <a href="2160p.html" class="resolution">2160p (4K)</a>
-    <a href="warnings.html" class="resolution">Pop Up Alerts</a>
-    <a href="overlayeditor.html" class="resolution">Background Alerts Creator</a>
-    <a href="popupalertseditor.html" class="resolution">Pop Up Alerts Creator</a>
-    <a href="usalertmap.html" class="resolution">US Alert Map</a>
-    <a href="canadaalerts1080p.html" class="resolution">Canada Alerts 1080p</a>
-    <a href="popupalertstest.html" class="resolution">Test Pop up Alerts</a>
-    <a href="https://youtu.be/AtTtNPobqZg?si=YlqQvtqt_UUjDz5Y" class="resolution">video tutorial</a>
-    <a href="https://discord.gg/V5BaXF5jUK" class="resolution">discord server</a>
-  </div>
-</body>
+</style>
 </html>
-
-
-
